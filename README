@@ -1,0 +1,46 @@
+
+	Divide and Conquer 2D Delaunay triangulation
+		
+		by Wael El Oraiby 2005(c)
+
+INTRODUCTION:
+=============
+This is a library that builds a 2D Delaunay triangulation using the divide and
+conquer algorithm by Guibas and Stolfi.
+
+This program was done at the start of my PhD thesis.
+
+Thanks to Dominique Schmitt and Jean-Claude Spehner for their valuable help and
+support.
+
+USAGE:
+======
+The algo builds the 2D Delaunay triangulation given a set of points of at least
+3 points using:
+
+int delaunay2d(real *points, int num_points, int **faces);
+
+points		: point set given as a sequence of tuple x0, y0, x1, y1, ....
+num_points	: number of given point
+faces		: the triangles given as a sequence: num verts, verts indices,
+		num verts, verts indices first face is the external face.
+return		: the number of created faces
+
+See the provided example if you want more information. It requires QT however.
+
+NOTE:
+=====
+As with every implementation, there are some stability issues when it comes to
+some case of colinear or cocyclic points. I intend to fix these issues when time
+permits.
+
+LICENSE:
+========
+I intend to release the source code later under a more permessive license. For
+now you have my permission to statically link your program with the code provided
+that you send me your bug fixes for any bug you find in the delaunay.c code.
+Please note that your patch should be under an MIT/BSD style license so I can
+release the code later under a more permissive license.
+
+
+
