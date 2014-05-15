@@ -1,6 +1,7 @@
 # -------------------------------------------------
 # Project created by QtCreator 2009-03-13T18:03:09
 # -------------------------------------------------
+QT		+= gui core widgets
 TARGET = qtdel
 TEMPLATE = app
 SOURCES += main.cpp \

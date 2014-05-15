@@ -1,7 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtGui/QMainWindow>
+#include <QtGui>
+#include <QtWidgets/QMainWindow>
 
 namespace Ui
 {

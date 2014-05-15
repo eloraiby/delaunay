@@ -38,8 +38,16 @@ struct	delaunay_s;
 
 #ifdef USE_DOUBLE
 typedef double real;
+#define REAL_ZERO	0.0
+#define REAL_ONE	1.0
+#define REAL_TWO	2.0
+#define REAL_FOUR	4.0
 #else
 typedef float real;
+#define REAL_ZERO	0.0f
+#define REAL_ONE	1.0f
+#define REAL_TWO	2.0f
+#define REAL_FOUR	4.0f
 #endif
 
 typedef struct point2d_s	point2d_t;
@@ -50,9 +58,9 @@ typedef real mat3_t[3][3];
 
 struct point2d_s
 {
-	int					idx;		/* point index in input buffer */
-	real				x, y;		/* point coordinates */
-	halfedge_t*			he;			/* point halfedge */
+	int			idx;			/* point index in input buffer */
+	real			x, y;			/* point coordinates */
+	halfedge_t*		he;			/* point halfedge */
 };
 
 struct face_s
@@ -61,8 +69,8 @@ struct face_s
 	real			cx, cy;
 	point2d_t*		p[3];
 */
-	halfedge_t*		he;				/* a pointing half edge */
-	int				num_verts;		/* number of vertices on this face */
+	halfedge_t*		he;			/* a pointing half edge */
+	int			num_verts;		/* number of vertices on this face */
 };
 
 struct halfedge_s
@@ -78,11 +86,11 @@ struct delaunay_s
 {
 	halfedge_t*		rightmost_he;		/* right most halfedge */
 	halfedge_t*		leftmost_he;		/* left most halfedge */
-	point2d_t**		points;				/* pointer to points */
-	face_t*			faces;				/* faces of delaunay */
-	int				num_faces;			/* face count */
-	int				start_point;		/* start point index */
-	int				end_point;			/* end point index */
+	point2d_t**		points;			/* pointer to points */
+	face_t*			faces;			/* faces of delaunay */
+	int			num_faces;		/* face count */
+	int			start_point;		/* start point index */
+	int			end_point;		/* end point index */
 };
 
 /*
@@ -208,9 +216,9 @@ static int classify_point_seg( point2d_t *s, point2d_t *e, point2d_t *pt )
 	spt.y	= pt->y - s->y;
 
 	res	= (( se.x * spt.y ) - ( se.y * spt.x ));
-	if( res < 0.0f )
+	if( res < REAL_ZERO )
 		return ON_RIGHT;
-	else if( res > 0.0f )
+	else if( res > REAL_ZERO )
 		return ON_LEFT;
 
 	return ON_SEG;
@@ -234,7 +242,7 @@ static int del_classify_point( halfedge_t *d, point2d_t *pt )
 */
 static real dabs( real a )
 {
-	if( a < 0.0 )
+	if( a < REAL_ZERO )
 		return (-a);
 	return a;
 }
@@ -260,7 +268,7 @@ static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real
 	ma[1][1]	= pt1->y;
 	ma[2][0]	= pt2->x;
 	ma[2][1]	= pt2->y;
-	ma[0][2]	= ma[1][2] = ma[2][2] = 1.0;
+	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
 
 	/* setup Bx matrix */
 	mbx[0][0]	= x0y0;
@@ -269,7 +277,7 @@ static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real
 	mbx[0][1]	= pt0->y;
 	mbx[1][1]	= pt1->y;
 	mbx[2][1]	= pt2->y;
-	mbx[0][2]	= mbx[1][2] = mbx[2][2] = 1.0;
+	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
 
 	/* setup By matrix */
 	mby[0][0]	= x0y0;
@@ -278,7 +286,7 @@ static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real
 	mby[0][1]	= pt0->x;
 	mby[1][1]	= pt1->x;
 	mby[2][1]	= pt2->x;
-	mby[0][2]	= mby[1][2] = mby[2][2] = 1.0;
+	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
 
 	/* setup C matrix */
 	mc[0][0]	= x0y0;
@@ -297,9 +305,9 @@ static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real
 	by	= -det3(&mby);
 	c	= -det3(&mc);
 
-	*cx	= bx / (2.0 * a);
-	*cy	= by / (2.0 * a);
-	*radius	= sqrt(bx * bx + by * by - 4.0 * a * c) / (2.0 * dabs(a));
+	*cx	= bx / (REAL_TWO * a);
+	*cy	= by / (REAL_TWO * a);
+	*radius	= sqrt(bx * bx + by * by - REAL_FOUR * a * c) / (REAL_TWO * dabs(a));
 }
 
 /*
@@ -323,7 +331,7 @@ static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t 
 	ma[1][1]	= pt1->y;
 	ma[2][0]	= pt2->x;
 	ma[2][1]	= pt2->y;
-	ma[0][2]	= ma[1][2] = ma[2][2] = 1.0;
+	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
 
 	/* setup Bx matrix */
 	mbx[0][0]	= x0y0;
@@ -332,7 +340,7 @@ static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t 
 	mbx[0][1]	= pt0->y;
 	mbx[1][1]	= pt1->y;
 	mbx[2][1]	= pt2->y;
-	mbx[0][2]	= mbx[1][2] = mbx[2][2] = 1.0;
+	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
 
 	/* setup By matrix */
 	mby[0][0]	= x0y0;
@@ -341,7 +349,7 @@ static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t 
 	mby[0][1]	= pt0->x;
 	mby[1][1]	= pt1->x;
 	mby[2][1]	= pt2->x;
-	mby[0][2]	= mby[1][2] = mby[2][2] = 1.0;
+	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
 
 	/* setup C matrix */
 	mc[0][0]	= x0y0;
@@ -363,9 +371,9 @@ static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t 
 	res	= a * (p->x * p->x + p->y * p->y ) - bx * p->x - by * p->y + c;
 
 
-	if( res < 0.0 )
+	if( res < REAL_ZERO )
 		return INSIDE;
-	else if( res > 0.0 )
+	else if( res > REAL_ZERO )
 		return OUTSIDE;
 
 	return ON_CIRCLE;

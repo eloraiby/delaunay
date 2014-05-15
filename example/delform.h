@@ -1,7 +1,7 @@
 #ifndef DELFORM_H
 #define DELFORM_H
 
-#include <QtGui/QWidget>
+#include <QWidget>
 
 #include "../delaunay.h"
 
