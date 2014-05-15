@@ -929,6 +929,10 @@ static int cmp_points( const void *_pt0, const void *_pt1 )
 		return -1;
 	else if( pt0->x > pt1->x )
 		return 1;
+	else if( pt0->y < pt1->y )
+		return -1;
+	else if( pt0->y > pt1->y )
+		return 1;
 	return 0;
 }
 
