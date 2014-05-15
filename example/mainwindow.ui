@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>24</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -37,7 +37,16 @@
     <addaction name="separator"/>
     <addaction name="actionE_xit"/>
    </widget>
+   <widget class="QMenu" name="menuAuto">
+    <property name="title">
+     <string>Auto</string>
+    </property>
+    <addaction name="actionRandom"/>
+    <addaction name="actionGrid"/>
+    <addaction name="actionCircular"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuAuto"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -58,6 +67,21 @@
     <string>E&amp;xit</string>
    </property>
   </action>
+  <action name="actionRandom">
+   <property name="text">
+    <string>Random</string>
+   </property>
+  </action>
+  <action name="actionGrid">
+   <property name="text">
+    <string>Grid</string>
+   </property>
+  </action>
+  <action name="actionCircular">
+   <property name="text">
+    <string>Circular</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -66,8 +90,45 @@
    <extends>QWidget</extends>
    <header>delform.h</header>
    <container>1</container>
+   <slots>
+    <slot>newGrid()</slot>
+    <slot>newRandom()</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionRandom</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>newRandom()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionGrid</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>newGrid()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>299</x>
+     <y>199</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

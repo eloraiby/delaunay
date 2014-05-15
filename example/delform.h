@@ -6,26 +6,29 @@
 #include "../delaunay.h"
 
 namespace Ui {
-    class DelForm;
+class DelForm;
 }
 
 #define MAX_POINTS		512
 
 class DelForm : public QWidget {
-    Q_OBJECT
-    Q_DISABLE_COPY(DelForm)
+	Q_OBJECT
+	Q_DISABLE_COPY(DelForm)
 public:
-    explicit DelForm(QWidget *parent = 0);
-    virtual ~DelForm();
+	explicit DelForm(QWidget *parent = 0);
+	virtual ~DelForm();
 
 protected:
-    virtual void changeEvent(QEvent *e);
+	virtual void changeEvent(QEvent *e);
 	virtual void mousePressEvent(QMouseEvent *e);
 	virtual void paintEvent(QPaintEvent *e);
 
+public slots:
+	void		newRandom();
+	void		newGrid();
+
 private:
-    Ui::DelForm *m_ui;
-	//point2d_t		_points[MAX_POINTS];
+	Ui::DelForm *m_ui;
 	struct point2d {
 		float	x, y;
 	};

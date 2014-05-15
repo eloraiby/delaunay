@@ -76,9 +76,9 @@ struct face_s
 struct halfedge_s
 {
 	point2d_t*		vertex;			/* vertex */
-	halfedge_t*		alpha;			/* alpha */
-	halfedge_t*		sigma;			/* sigma */
-	halfedge_t*		amgis;			/* sigma^-1 */
+	halfedge_t*		pair;			/* pair */
+	halfedge_t*		next;			/* next */
+	halfedge_t*		prev;			/* next^-1 */
 	face_t*			face;			/* halfedge face */
 };
 
@@ -100,9 +100,9 @@ static real det3( mat3_t *m )
 {
 	real		res;
 
-	res		= ((*m)[0][0]) * (((*m)[1][1]) * ((*m)[2][2]) - ((*m)[1][2]) * ((*m)[2][1]));
-	res		-= ((*m)[0][1]) * (((*m)[1][0]) * ((*m)[2][2]) - ((*m)[1][2]) * ((*m)[2][0]));
-	res		+= ((*m)[0][2]) * (((*m)[1][0]) * ((*m)[2][1]) - ((*m)[1][1]) * ((*m)[2][0]));
+	res		= ((*m)[0][0]) * (((*m)[1][1]) * ((*m)[2][2]) - ((*m)[1][2]) * ((*m)[2][1]))
+			- ((*m)[0][1]) * (((*m)[1][0]) * ((*m)[2][2]) - ((*m)[1][2]) * ((*m)[2][0]))
+			+ ((*m)[0][2]) * (((*m)[1][0]) * ((*m)[2][1]) - ((*m)[1][1]) * ((*m)[2][0]));
 
 	return res;
 }
@@ -172,7 +172,7 @@ void del_free_halfedges( delaunay_t *del )
 		if( d != NULL )
 		{
 			do {
-				sig	= d->sigma;
+				sig	= d->next;
 				halfedge_free( d );
 				d	= sig;
 			} while( d != del->points[i]->he );
@@ -232,7 +232,7 @@ static int del_classify_point( halfedge_t *d, point2d_t *pt )
 	point2d_t		*s, *e;
 
 	s		= d->vertex;
-	e		= d->alpha->vertex;
+	e		= d->pair->vertex;
 
 	return classify_point_seg(s, e, pt);
 }
@@ -402,11 +402,11 @@ static int del_init_seg( delaunay_t *del, int start )
 	d0->vertex	= pt0;
 	d1->vertex	= pt1;
 
-	d0->sigma	= d0->amgis	= d0;
-	d1->sigma	= d1->amgis	= d1;
+	d0->next	= d0->prev	= d0;
+	d1->next	= d1->prev	= d1;
 
-	d0->alpha	= d1;
-	d1->alpha	= d0;
+	d0->pair	= d1;
+	d1->pair	= d0;
 
 	pt0->he	= d0;
 	pt1->he	= d1;
@@ -459,34 +459,34 @@ static int del_init_tri( delaunay_t *del, int start )
 		pt1->he	= d2;
 		pt2->he	= d1;
 
-		/* sigma and sigma -1 setup */
-		d0->sigma	= d5;
-		d0->amgis	= d5;
+		/* next and next -1 setup */
+		d0->next	= d5;
+		d0->prev	= d5;
 
-		d1->sigma	= d3;
-		d1->amgis	= d3;
+		d1->next	= d3;
+		d1->prev	= d3;
 
-		d2->sigma	= d4;
-		d2->amgis	= d4;
+		d2->next	= d4;
+		d2->prev	= d4;
 
-		d3->sigma	= d1;
-		d3->amgis	= d1;
+		d3->next	= d1;
+		d3->prev	= d1;
 
-		d4->sigma	= d2;
-		d4->amgis	= d2;
+		d4->next	= d2;
+		d4->prev	= d2;
 
-		d5->sigma	= d0;
-		d5->amgis	= d0;
+		d5->next	= d0;
+		d5->prev	= d0;
 
-		/* set halfedges alpha */
-		d0->alpha	= d3;
-		d3->alpha	= d0;
+		/* set halfedges pair */
+		d0->pair	= d3;
+		d3->pair	= d0;
 
-		d1->alpha	= d4;
-		d4->alpha	= d1;
+		d1->pair	= d4;
+		d4->pair	= d1;
 
-		d2->alpha	= d5;
-		d5->alpha	= d2;
+		d2->pair	= d5;
+		d5->pair	= d2;
 
 		del->rightmost_he	= d1;
 		del->leftmost_he		= d0;
@@ -507,34 +507,34 @@ static int del_init_tri( delaunay_t *del, int start )
 		pt1->he	= d1;
 		pt2->he	= d2;
 
-		/* sigma and sigma -1 setup */
-		d0->sigma	= d5;
-		d0->amgis	= d5;
+		/* next and next -1 setup */
+		d0->next	= d5;
+		d0->prev	= d5;
 
-		d1->sigma	= d3;
-		d1->amgis	= d3;
+		d1->next	= d3;
+		d1->prev	= d3;
 
-		d2->sigma	= d4;
-		d2->amgis	= d4;
+		d2->next	= d4;
+		d2->prev	= d4;
 
-		d3->sigma	= d1;
-		d3->amgis	= d1;
+		d3->next	= d1;
+		d3->prev	= d1;
 
-		d4->sigma	= d2;
-		d4->amgis	= d2;
+		d4->next	= d2;
+		d4->prev	= d2;
 
-		d5->sigma	= d0;
-		d5->amgis	= d0;
+		d5->next	= d0;
+		d5->prev	= d0;
 
-		/* set halfedges alpha */
-		d0->alpha	= d3;
-		d3->alpha	= d0;
+		/* set halfedges pair */
+		d0->pair	= d3;
+		d3->pair	= d0;
 
-		d1->alpha	= d4;
-		d4->alpha	= d1;
+		d1->pair	= d4;
+		d4->pair	= d1;
 
-		d2->alpha	= d5;
-		d5->alpha	= d2;
+		d2->pair	= d5;
+		d5->pair	= d2;
 
 		del->rightmost_he	= d2;
 		del->leftmost_he		= d0;
@@ -551,25 +551,25 @@ static int del_init_tri( delaunay_t *del, int start )
 */
 static void del_remove_single_halfedge( halfedge_t *d )
 {
-	halfedge_t	*sigma, *amgis, *alpha;
+	halfedge_t	*next, *prev, *pair;
 
-	sigma	= d->sigma;
-	amgis	= d->amgis;
-	alpha	= d->alpha;
+	next	= d->next;
+	prev	= d->prev;
+	pair	= d->pair;
 
-	assert(sigma != NULL);
-	assert(amgis != NULL);
+	assert(next != NULL);
+	assert(prev != NULL);
 
-	sigma->amgis	= amgis;
-	amgis->sigma	= sigma;
+	next->prev	= prev;
+	prev->next	= next;
 
-	/* check to see if we have already removed alpha */
-	if( alpha )
-		alpha->alpha	= NULL;
+	/* check to see if we have already removed pair */
+	if( pair )
+		pair->pair	= NULL;
 
 	/* check to see if the vertex points to this halfedge */
 	if( d->vertex->he == d )
-		d->vertex->he	= sigma;
+		d->vertex->he	= next;
 
 	/* finally free the halfedge */
 	halfedge_free(d);
@@ -580,12 +580,12 @@ static void del_remove_single_halfedge( halfedge_t *d )
 */
 static void del_remove_halfedge( halfedge_t *d )
 {
-	halfedge_t	*alpha;
+	halfedge_t	*pair;
 
-	alpha	= d->alpha;
+	pair	= d->pair;
 
 	del_remove_single_halfedge(d);
-	del_remove_single_halfedge(alpha);
+	del_remove_single_halfedge(pair);
 
 }
 
@@ -600,13 +600,13 @@ static halfedge_t* del_valid_left( halfedge_t* b )
 	g	= b->vertex;				/* base halfedge point */
 	dg	= b;
 
-	d	= b->alpha->vertex;			/* alpha(halfedge) point */
-	b	= b->sigma;
+	d	= b->pair->vertex;			/* pair(halfedge) point */
+	b	= b->next;
 
-	u	= b->alpha->vertex;			/* sigma(alpha(halfedge)) point */
-	du	= b->alpha;
+	u	= b->pair->vertex;			/* next(pair(halfedge)) point */
+	du	= b->pair;
 
-	v	= b->sigma->alpha->vertex;	/* alpha(sigma(sigma(halfedge)) point */
+	v	= b->next->pair->vertex;	/* pair(next(next(halfedge)) point */
 
 	if( classify_point_seg(g, d, u) == ON_LEFT )
 	{
@@ -614,16 +614,16 @@ static halfedge_t* del_valid_left( halfedge_t* b )
 		/* as long as the 4 points belong to the same circle, do the cleaning */
 		while( v != d && in_circle(g, d, u, v) == INSIDE	)
 		{
-			c	= b->sigma;
-			du	= b->sigma->alpha;
+			c	= b->next;
+			du	= b->next->pair;
 			del_remove_halfedge(b);
 			b	= c;
 			u	= du->vertex;
-			v	= b->sigma->alpha->vertex;
+			v	= b->next->pair->vertex;
 		}
 		if( v != d && in_circle(g, d, u, v) == ON_CIRCLE )
 		{
-			du	= du->amgis;
+			du	= du->prev;
 			del_remove_halfedge(b);
 		}
 	} else	/* treat the case where the 3 points are colinear */
@@ -640,31 +640,31 @@ static halfedge_t* del_valid_right( halfedge_t *b )
 	point2d_t		*g, *d, *u, *v;
 	halfedge_t		*c, *dd, *du;
 
-	b	= b->alpha;
+	b	= b->pair;
 	d	= b->vertex;
 	dd	= b;
-	g	= b->alpha->vertex;
-	b	= b->amgis;
-	u	= b->alpha->vertex;
-	du	= b->alpha;
+	g	= b->pair->vertex;
+	b	= b->prev;
+	u	= b->pair->vertex;
+	du	= b->pair;
 
-	v	= b->amgis->alpha->vertex;
+	v	= b->prev->pair->vertex;
 
 	if( classify_point_seg(g, d, u) == ON_LEFT )
 	{
 		while( v != g && in_circle(g, d, u, v) == INSIDE )
 		{
-			c	= b->amgis;
-			du	= c->alpha;
+			c	= b->prev;
+			du	= c->pair;
 			del_remove_halfedge(b);
 			b	= c;
 			u	= du->vertex;
-			v	= b->amgis->alpha->vertex;
+			v	= b->prev->pair->vertex;
 		}
 		if( v != g && in_circle(g, d, u, v) == ON_CIRCLE )
 
 		{
-			du	= du->sigma;
+			du	= du->next;
 			del_remove_halfedge(b);
 		}
 	} else
@@ -688,7 +688,7 @@ static halfedge_t* del_valid_link( halfedge_t *b )
 	g_p	= gd->vertex;
 
 
-	d	= b->alpha->vertex;
+	d	= b->pair->vertex;
 	dd	= del_valid_right(b);
 	d_p	= dd->vertex;
 
@@ -706,7 +706,7 @@ static halfedge_t* del_valid_link( halfedge_t *b )
 			else
 			{
 				d_p = d;
-				dd	= b->alpha;
+				dd	= b->pair;
 			}
 		}
 	}
@@ -718,18 +718,18 @@ static halfedge_t* del_valid_link( halfedge_t *b )
 	/* setup new_gd and new_dd */
 
 	new_gd->vertex	= gd->vertex;
-	new_gd->alpha	= new_dd;
-	new_gd->amgis	= gd;
-	new_gd->sigma	= gd->sigma;
-	gd->sigma->amgis	= new_gd;
-	gd->sigma		= new_gd;
+	new_gd->pair	= new_dd;
+	new_gd->prev	= gd;
+	new_gd->next	= gd->next;
+	gd->next->prev	= new_gd;
+	gd->next		= new_gd;
 
 	new_dd->vertex	= dd->vertex;
-	new_dd->alpha	= new_gd;
-	new_dd->amgis	= dd->amgis;
-	dd->amgis->sigma	= new_dd;
-	new_dd->sigma	= dd;
-	dd->amgis		= new_dd;
+	new_dd->pair	= new_gd;
+	new_dd->prev	= dd->prev;
+	dd->prev->next	= new_dd;
+	new_dd->next	= dd;
+	dd->prev		= new_dd;
 
 	return new_gd;
 }
@@ -747,17 +747,15 @@ static halfedge_t* del_get_lower_supportant( delaunay_t *left, delaunay_t *right
 	right_d	= right->leftmost_he;
 
 	do {
-		pl		= left_d->amgis->alpha->vertex;
-		pr		= right_d->alpha->vertex;
+		pl		= left_d->prev->pair->vertex;
+		pr		= right_d->pair->vertex;
 
-		if( (sl = classify_point_seg(left_d->vertex, right_d->vertex, pl)) == ON_RIGHT )
-		{
-			left_d	= left_d->amgis->alpha;
+		if( (sl = classify_point_seg(left_d->vertex, right_d->vertex, pl)) == ON_RIGHT ) {
+			left_d	= left_d->prev->pair;
 		}
 
-		if( (sr = classify_point_seg(left_d->vertex, right_d->vertex, pr)) == ON_RIGHT )
-		{
-			right_d	= right_d->alpha->sigma;
+		if( (sr = classify_point_seg(left_d->vertex, right_d->vertex, pr)) == ON_RIGHT ) {
+			right_d	= right_d->pair->next;
 		}
 
 	} while( sl == ON_RIGHT || sr == ON_RIGHT );
@@ -768,18 +766,18 @@ static halfedge_t* del_get_lower_supportant( delaunay_t *left, delaunay_t *right
 
 	/* setup new_gd and new_dd */
 	new_ld->vertex	= left_d->vertex;
-	new_ld->alpha	= new_rd;
-	new_ld->amgis	= left_d->amgis;
-	left_d->amgis->sigma	= new_ld;
-	new_ld->sigma	= left_d;
-	left_d->amgis	= new_ld;
+	new_ld->pair	= new_rd;
+	new_ld->prev	= left_d->prev;
+	left_d->prev->next	= new_ld;
+	new_ld->next	= left_d;
+	left_d->prev	= new_ld;
 
 	new_rd->vertex	= right_d->vertex;
-	new_rd->alpha	= new_ld;
-	new_rd->amgis	= right_d->amgis;
-	right_d->amgis->sigma	= new_rd;
-	new_rd->sigma	= right_d;
-	right_d->amgis	= new_rd;
+	new_rd->pair	= new_ld;
+	new_rd->prev	= right_d->prev;
+	right_d->prev->next	= new_rd;
+	new_rd->next	= right_d;
+	right_d->prev	= new_rd;
 
 	return new_ld;
 }
@@ -800,26 +798,26 @@ static void del_link( delaunay_t *result, delaunay_t *left, delaunay_t *right )
 
 	b		= del_get_lower_supportant(left, right);
 
-	u		= b->sigma->alpha->vertex;
-	v		= b->alpha->amgis->alpha->vertex;
+	u		= b->next->pair->vertex;
+	v		= b->pair->prev->pair->vertex;
 
 	while( del_classify_point(b, u) == ON_LEFT ||
 		del_classify_point(b, v) == ON_LEFT )
 	{
 		b	= del_valid_link(b);
-		u	= b->sigma->alpha->vertex;
-		v	= b->alpha->amgis->alpha->vertex;
+		u	= b->next->pair->vertex;
+		v	= b->pair->prev->pair->vertex;
 	}
 
 	right->rightmost_he	= mr->he;
 	left->leftmost_he	= ml->he;
 
 	/* TODO: this part is not needed, and can be optimized */
-	while( del_classify_point( right->rightmost_he, right->rightmost_he->amgis->alpha->vertex ) == ON_RIGHT )
-		right->rightmost_he	= right->rightmost_he->amgis;
+	while( del_classify_point( right->rightmost_he, right->rightmost_he->prev->pair->vertex ) == ON_RIGHT )
+		right->rightmost_he	= right->rightmost_he->prev;
 
-	while( del_classify_point( left->leftmost_he, left->leftmost_he->amgis->alpha->vertex ) == ON_RIGHT )
-		left->leftmost_he	= left->leftmost_he->amgis;
+	while( del_classify_point( left->leftmost_he, left->leftmost_he->prev->pair->vertex ) == ON_RIGHT )
+		left->leftmost_he	= left->leftmost_he->prev;
 
 	result->leftmost_he	= left->leftmost_he;
 	result->rightmost_he	= right->rightmost_he;
@@ -871,7 +869,7 @@ static void build_halfedge_face( delaunay_t *del, halfedge_t *d )
 	do {
 		curr->face	= f;
 		(f->num_verts)++;
-		curr	= curr->alpha->amgis;
+		curr	= curr->pair->prev;
 	} while( curr != d );
 
 	(del->num_faces)++;
@@ -879,8 +877,8 @@ static void build_halfedge_face( delaunay_t *del, halfedge_t *d )
 /*	if( d->face.radius < 0.0 )
 	{
 		d->face.p[0]	= d->vertex;
-		d->face.p[1]	= d->alpha->vertex;
-		d->face.p[2]	= d->alpha->amgis->alpha->vertex;
+		d->face.p[1]	= d->pair->vertex;
+		d->face.p[2]	= d->pair->prev->pair->vertex;
 
 		if( classify_point_seg( d->face.p[0], d->face.p[1], d->face.p[2] ) == ON_LEFT )
 		{
@@ -902,7 +900,7 @@ void del_build_faces( delaunay_t *del )
 	del->faces		= NULL;
 
 	/* build external face first */
-	build_halfedge_face(del, del->rightmost_he->alpha);
+	build_halfedge_face(del, del->rightmost_he->pair);
 
 	for( i = del->start_point; i <= del->end_point; i++ )
 	{
@@ -910,7 +908,7 @@ void del_build_faces( delaunay_t *del )
 
 		do {
 			build_halfedge_face( del, curr );
-			curr	= curr->sigma;
+			curr	= curr->next;
 		} while( curr != del->points[i]->he );
 	}
 }
@@ -933,7 +931,8 @@ static int cmp_points( const void *_pt0, const void *_pt1 )
 		return -1;
 	else if( pt0->y > pt1->y )
 		return 1;
-	return 0;
+	assert(0 && "2 or more points share the same exact coordinate");
+	return 0; /* Should not be given! */
 }
 
 /*
@@ -990,7 +989,7 @@ int delaunay2d(real *points, int num_points, int **faces)
 			do {
 				(*faces)[j]	= curr->vertex->idx;
 				j++;
-				curr	= curr->alpha->amgis;
+				curr	= curr->pair->prev;
 			} while( curr != del.faces[i].he );
 		}
 

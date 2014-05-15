@@ -51,6 +51,7 @@ void DelForm::paintEvent(QPaintEvent *e)
 
 
 	painter.begin(this);
+	painter.setRenderHint(QPainter::Antialiasing);
 
 	for( i = 0; i < num_points; i++ )
 	{
@@ -78,10 +79,10 @@ void DelForm::paintEvent(QPaintEvent *e)
 
 		char str[512];
 
-		sprintf(str, "number of convex hull vertices: %d", faces[0]);
+		sprintf(str, "number of convex hull vertices: %d, points: %ld", faces[0], num_points);
 
 
-		QPointF	pf[16];
+		QPointF	pf[512];
 
 		for( i = 0; i < num_faces; i++ )
 		{
@@ -94,7 +95,7 @@ void DelForm::paintEvent(QPaintEvent *e)
 				pf[j] = QPointF(points[p0].x, points[p0].y);
 				//painter.drawLine(points[p0].x, points[p0].y, points[p1].x, points[p1].y);
 			}
-			painter.setBrush(QBrush(QColor(rand() % 256, rand() % 256, rand() % 256)));
+			//painter.setBrush(QBrush(QColor(rand() % 256, rand() % 256, rand() % 256)));
 			painter.drawPolygon(pf, num_verts);
 			offset += num_verts;
 		}
@@ -106,4 +107,60 @@ void DelForm::paintEvent(QPaintEvent *e)
 
 
 	painter.end();
+}
+
+void
+DelForm::newGrid() {
+	printf("new Grid\n");
+
+	num_points	= 0;
+
+	for(int y = 0; y < 16; ++y) {
+		for( int x = 0; x < 16; ++x ) {
+			points[num_points].x	= 100 + x * 16;
+			points[num_points].y	= 100 + y * 16;
+
+			num_points++;
+		}
+	}
+
+	this->repaint();
+}
+
+void
+DelForm::newRandom() {
+	printf("new Random\n");
+
+	num_points	= 0;
+
+//	int	x = 0;
+//	for(int y = 0; y < 16; ++y) {
+//		//for( int x = 0; x < 16; ++x ) {
+//			points[num_points].x	= 100 + x * 16;
+//			points[num_points].y	= 100 + y * 16;
+
+//			num_points++;
+//		//}
+//	}
+
+//	x = 8;
+//	for(int y = 0; y < 16; ++y) {
+//		//for( int x = 0; x < 16; ++x ) {
+//			points[num_points].x	= 116 + y * 16;
+//			points[num_points].y	= 100 + x * 16;
+
+//			num_points++;
+//		//}
+//	}
+
+	for(int y = 0; y < 16; ++y) {
+		for( int x = 0; x < 16; ++x ) {
+			points[num_points].x	= 100 + rand() & 0xFF;
+			points[num_points].y	= 100 + rand() & 0xFF;
+
+			num_points++;
+		}
+	}
+
+	this->repaint();
 }
