@@ -24,9 +24,15 @@ return		: the number of created faces
 
 See the provided example if you want more information. It requires QT however.
 
+### EXAMPLES
+![random](https://github.com/eloraiby/delaunay/raw/master/images/random.png)
+![grid](https://github.com/eloraiby/delaunay/raw/master/images/grid.png)
+![vertical and horizontal lines](https://github.com/eloraiby/delaunay/raw/master/images/vertical_horizontal.png)
+![circles](https://github.com/eloraiby/delaunay/raw/master/images/circles.png)
+
 ### NOTE
 
-The implementation is relatively robust, in case of input or predicate floating point rounding errors, it will assert. 
+The implementation is relatively robust (take a look at the pictures above, some of these cases will crash most freely available implementations), in case of input or predicate floating point rounding errors, it will assert. 
 These stability issues when when they happen are related to the in_circle or classify_point_seg predicates. Solving the remaining issues requires exact floating point arithmetic (and will reduce performance). Nonetheless, these issues will be solved when time permits.
 
 ### LICENSE
