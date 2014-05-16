@@ -23,6 +23,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "delaunay.h"
+
 #define ON_RIGHT	1
 #define ON_SEG		0
 #define ON_LEFT		-1
@@ -36,14 +38,13 @@ struct	face_s;
 struct	halfedge_s;
 struct	delaunay_s;
 
+
 #ifdef USE_DOUBLE
-typedef double real;
 #define REAL_ZERO	0.0
 #define REAL_ONE	1.0
 #define REAL_TWO	2.0
 #define REAL_FOUR	4.0
 #else
-typedef float real;
 #define REAL_ZERO	0.0f
 #define REAL_ONE	1.0f
 #define REAL_TWO	2.0f
@@ -150,6 +151,7 @@ static halfedge_t* halfedge_alloc()
 static void halfedge_free( halfedge_t* d )
 {
 	assert( d != NULL );
+	memset(d, 0, sizeof(halfedge_t));
 	free(d);
 }
 
@@ -315,67 +317,76 @@ static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real
 */
 static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t *p )
 {
-	mat3_t	ma, mbx, mby, mc;
-	real	x0y0, x1y1, x2y2;
-	real	a, bx, by, c, res;
+//	mat3_t	ma, mbx, mby, mc;
+//	real	x0y0, x1y1, x2y2;
+//	real	a, bx, by, c, res;
 
-	/* calculate x0y0, .... */
-	x0y0		= pt0->x * pt0->x + pt0->y * pt0->y;
-	x1y1		= pt1->x * pt1->x + pt1->y * pt1->y;
-	x2y2		= pt2->x * pt2->x + pt2->y * pt2->y;
+//	/* calculate x0y0, .... */
+//	x0y0		= pt0->x * pt0->x + pt0->y * pt0->y;
+//	x1y1		= pt1->x * pt1->x + pt1->y * pt1->y;
+//	x2y2		= pt2->x * pt2->x + pt2->y * pt2->y;
 
-	/* setup A matrix */
-	ma[0][0]	= pt0->x;
-	ma[0][1]	= pt0->y;
-	ma[1][0]	= pt1->x;
-	ma[1][1]	= pt1->y;
-	ma[2][0]	= pt2->x;
-	ma[2][1]	= pt2->y;
-	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
+//	/* setup A matrix */
+//	ma[0][0]	= pt0->x;
+//	ma[0][1]	= pt0->y;
+//	ma[1][0]	= pt1->x;
+//	ma[1][1]	= pt1->y;
+//	ma[2][0]	= pt2->x;
+//	ma[2][1]	= pt2->y;
+//	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
 
-	/* setup Bx matrix */
-	mbx[0][0]	= x0y0;
-	mbx[1][0]	= x1y1;
-	mbx[2][0]	= x2y2;
-	mbx[0][1]	= pt0->y;
-	mbx[1][1]	= pt1->y;
-	mbx[2][1]	= pt2->y;
-	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
+//	/* setup Bx matrix */
+//	mbx[0][0]	= x0y0;
+//	mbx[1][0]	= x1y1;
+//	mbx[2][0]	= x2y2;
+//	mbx[0][1]	= pt0->y;
+//	mbx[1][1]	= pt1->y;
+//	mbx[2][1]	= pt2->y;
+//	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
 
-	/* setup By matrix */
-	mby[0][0]	= x0y0;
-	mby[1][0]	= x1y1;
-	mby[2][0]	= x2y2;
-	mby[0][1]	= pt0->x;
-	mby[1][1]	= pt1->x;
-	mby[2][1]	= pt2->x;
-	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
+//	/* setup By matrix */
+//	mby[0][0]	= x0y0;
+//	mby[1][0]	= x1y1;
+//	mby[2][0]	= x2y2;
+//	mby[0][1]	= pt0->x;
+//	mby[1][1]	= pt1->x;
+//	mby[2][1]	= pt2->x;
+//	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
 
-	/* setup C matrix */
-	mc[0][0]	= x0y0;
-	mc[1][0]	= x1y1;
-	mc[2][0]	= x2y2;
-	mc[0][1]	= pt0->x;
-	mc[1][1]	= pt1->x;
-	mc[2][1]	= pt2->x;
-	mc[0][2]	= pt0->y;
-	mc[1][2]	= pt1->y;
-	mc[2][2]	= pt2->y;
+//	/* setup C matrix */
+//	mc[0][0]	= x0y0;
+//	mc[1][0]	= x1y1;
+//	mc[2][0]	= x2y2;
+//	mc[0][1]	= pt0->x;
+//	mc[1][1]	= pt1->x;
+//	mc[2][1]	= pt2->x;
+//	mc[0][2]	= pt0->y;
+//	mc[1][2]	= pt1->y;
+//	mc[2][2]	= pt2->y;
 
-	/* compute a, bx, by and c */
-	a	= det3(&ma);
-	bx	= det3(&mbx);
-	by	= -det3(&mby);
-	c	= -det3(&mc);
+//	/* compute a, bx, by and c */
+//	a	= det3(&ma);
+//	bx	= det3(&mbx);
+//	by	= -det3(&mby);
+//	c	= -det3(&mc);
 
-	res	= a * (p->x * p->x + p->y * p->y ) - bx * p->x - by * p->y + c;
+//	res	= a * (p->x * p->x + p->y * p->y ) - bx * p->x - by * p->y + c;
 
 
-	if( res < REAL_ZERO )
+//	if( res < REAL_ZERO )
+//		return INSIDE;
+//	else if( res > REAL_ZERO )
+//		return OUTSIDE;
+
+//	return ON_CIRCLE;
+	real cx, cy, radius;
+	compute_circle(pt0, pt1, pt2, &cx, &cy, &radius);
+
+	real	distance	= sqrt((p->x - cx) * (p->x - cx) + (p->y - cy) * (p->y - cy));
+	if( distance < radius - 1.0/128.0 )
 		return INSIDE;
-	else if( res > REAL_ZERO )
+	else if(distance > radius + 1.0/128.0 )
 		return OUTSIDE;
-
 	return ON_CIRCLE;
 }
 
@@ -540,18 +551,17 @@ static int del_init_tri( delaunay_t *del, int start )
 		del->leftmost_he		= d0;
 	}
 
-	/* TODO: remove when finished */
-/*	del_show(del);
-*/
 	return 0;
 }
 
 /*
-* remove a single halfedge
+* remove an edge given a halfedge
 */
-static void del_remove_single_halfedge( halfedge_t *d )
+static void del_remove_edge( halfedge_t *d )
 {
-	halfedge_t	*next, *prev, *pair;
+	halfedge_t	*next, *prev, *pair, *orig_pair;
+
+	orig_pair	= d->pair;
 
 	next	= d->next;
 	prev	= d->prev;
@@ -563,6 +573,7 @@ static void del_remove_single_halfedge( halfedge_t *d )
 	next->prev	= prev;
 	prev->next	= next;
 
+
 	/* check to see if we have already removed pair */
 	if( pair )
 		pair->pair	= NULL;
@@ -571,22 +582,39 @@ static void del_remove_single_halfedge( halfedge_t *d )
 	if( d->vertex->he == d )
 		d->vertex->he	= next;
 
-	/* finally free the halfedge */
+	d->vertex	= NULL;
+	d->next		= NULL;
+	d->prev		= NULL;
+	d->pair		= NULL;
+
+	next	= orig_pair->next;
+	prev	= orig_pair->prev;
+	pair	= orig_pair->pair;
+
+	assert(next != NULL);
+	assert(prev != NULL);
+
+	next->prev	= prev;
+	prev->next	= next;
+
+
+	/* check to see if we have already removed pair */
+	if( pair )
+		pair->pair	= NULL;
+
+	/* check to see if the vertex points to this halfedge */
+	if( orig_pair->vertex->he == orig_pair )
+		orig_pair->vertex->he	= next;
+
+	orig_pair->vertex	= NULL;
+	orig_pair->next		= NULL;
+	orig_pair->prev		= NULL;
+	orig_pair->pair		= NULL;
+
+
+	/* finally free the halfedges */
 	halfedge_free(d);
-}
-
-/*
-* remove an edge given a halfedge
-*/
-static void del_remove_halfedge( halfedge_t *d )
-{
-	halfedge_t	*pair;
-
-	pair	= d->pair;
-
-	del_remove_single_halfedge(d);
-	del_remove_single_halfedge(pair);
-
+	halfedge_free(orig_pair);
 }
 
 /*
@@ -612,23 +640,25 @@ static halfedge_t* del_valid_left( halfedge_t* b )
 	{
 		/* 3 points aren't colinear */
 		/* as long as the 4 points belong to the same circle, do the cleaning */
-		while( v != d && in_circle(g, d, u, v) == INSIDE	)
+		while( v != d && v != g && in_circle(g, d, u, v) == INSIDE )
 		{
 			c	= b->next;
 			du	= b->next->pair;
-			del_remove_halfedge(b);
+			del_remove_edge(b);
 			b	= c;
 			u	= du->vertex;
 			v	= b->next->pair->vertex;
 		}
-		if( v != d && in_circle(g, d, u, v) == ON_CIRCLE )
+
+		if( v != d && v != g && in_circle(g, d, u, v) == ON_CIRCLE )
 		{
 			du	= du->prev;
-			del_remove_halfedge(b);
+			del_remove_edge(b);
 		}
 	} else	/* treat the case where the 3 points are colinear */
 		du		= dg;
 
+	assert(du->pair);
 	return du;
 }
 
@@ -637,39 +667,40 @@ static halfedge_t* del_valid_left( halfedge_t* b )
 */
 static halfedge_t* del_valid_right( halfedge_t *b )
 {
-	point2d_t		*g, *d, *u, *v;
+	point2d_t		*rv, *lv, *u, *v;
 	halfedge_t		*c, *dd, *du;
 
 	b	= b->pair;
-	d	= b->vertex;
+	rv	= b->vertex;
 	dd	= b;
-	g	= b->pair->vertex;
+	lv	= b->pair->vertex;
 	b	= b->prev;
 	u	= b->pair->vertex;
 	du	= b->pair;
 
 	v	= b->prev->pair->vertex;
 
-	if( classify_point_seg(g, d, u) == ON_LEFT )
+	if( classify_point_seg(lv, rv, u) == ON_LEFT )
 	{
-		while( v != g && in_circle(g, d, u, v) == INSIDE )
+		while( v != lv && v != rv && in_circle(lv, rv, u, v) == INSIDE )
 		{
 			c	= b->prev;
 			du	= c->pair;
-			del_remove_halfedge(b);
+			del_remove_edge(b);
 			b	= c;
 			u	= du->vertex;
 			v	= b->prev->pair->vertex;
 		}
-		if( v != g && in_circle(g, d, u, v) == ON_CIRCLE )
 
+		if( v != lv && v != rv && in_circle(lv, rv, u, v) == ON_CIRCLE )
 		{
 			du	= du->next;
-			del_remove_halfedge(b);
+			del_remove_edge(b);
 		}
 	} else
 		du	= dd;
 
+	assert(du->pair);
 	return du;
 }
 
@@ -687,10 +718,11 @@ static halfedge_t* del_valid_link( halfedge_t *b )
 	gd	= del_valid_left(b);
 	g_p	= gd->vertex;
 
-
+	assert(b->pair);
 	d	= b->pair->vertex;
 	dd	= del_valid_right(b);
 	d_p	= dd->vertex;
+	assert(b->pair);
 
 	if( g != g_p && d != d_p )
 	{
@@ -735,9 +767,9 @@ static halfedge_t* del_valid_link( halfedge_t *b )
 }
 
 /*
-* find the lower supportant between 2 delaunay
+* find the lower tangent between the two delaunay, going from left to right (returns the left half edge)
 */
-static halfedge_t* del_get_lower_supportant( delaunay_t *left, delaunay_t *right )
+static halfedge_t* del_get_lower_tangent( delaunay_t *left, delaunay_t *right )
 {
 	point2d_t	*pl, *pr;
 	halfedge_t	*right_d, *left_d, *new_ld, *new_rd;
@@ -788,7 +820,7 @@ static halfedge_t* del_get_lower_supportant( delaunay_t *left, delaunay_t *right
 static void del_link( delaunay_t *result, delaunay_t *left, delaunay_t *right )
 {
 	point2d_t		*u, *v, *ml, *mr;
-	halfedge_t		*b;
+	halfedge_t		*base;
 
 	assert( left->points == right->points );
 
@@ -796,17 +828,17 @@ static void del_link( delaunay_t *result, delaunay_t *left, delaunay_t *right )
 	ml		= left->leftmost_he->vertex;
 	mr		= right->rightmost_he->vertex;
 
-	b		= del_get_lower_supportant(left, right);
+	base		= del_get_lower_tangent(left, right);
 
-	u		= b->next->pair->vertex;
-	v		= b->pair->prev->pair->vertex;
+	u		= base->next->pair->vertex;
+	v		= base->pair->prev->pair->vertex;
 
-	while( del_classify_point(b, u) == ON_LEFT ||
-		del_classify_point(b, v) == ON_LEFT )
+	while( del_classify_point(base, u) == ON_LEFT ||
+	       del_classify_point(base, v) == ON_LEFT )
 	{
-		b	= del_valid_link(b);
-		u	= b->next->pair->vertex;
-		v	= b->pair->prev->pair->vertex;
+		base	= del_valid_link(base);
+		u	= base->next->pair->vertex;
+		v	= base->pair->prev->pair->vertex;
 	}
 
 	right->rightmost_he	= mr->he;
@@ -814,13 +846,13 @@ static void del_link( delaunay_t *result, delaunay_t *left, delaunay_t *right )
 
 	/* TODO: this part is not needed, and can be optimized */
 	while( del_classify_point( right->rightmost_he, right->rightmost_he->prev->pair->vertex ) == ON_RIGHT )
-		right->rightmost_he	= right->rightmost_he->prev;
+	       right->rightmost_he	= right->rightmost_he->prev;
 
 	while( del_classify_point( left->leftmost_he, left->leftmost_he->prev->pair->vertex ) == ON_RIGHT )
-		left->leftmost_he	= left->leftmost_he->prev;
+	       left->leftmost_he	= left->leftmost_he->prev;
 
-	result->leftmost_he	= left->leftmost_he;
-	result->rightmost_he	= right->rightmost_he;
+	result->leftmost_he		= left->leftmost_he;
+	result->rightmost_he		= right->rightmost_he;
 	result->points			= left->points;
 	result->start_point		= left->start_point;
 	result->end_point		= right->end_point;
@@ -953,7 +985,7 @@ int delaunay2d(real *points, int num_points, int **faces)
 	del.points	= (point2d_t**)malloc(num_points * sizeof(point2d_t*));
 	assert( del.points != NULL );
 	memset(del.points, 0, num_points * sizeof(point2d_t*));
-	
+
 	/* copy the points */
 	for( i = 0; i < num_points; i++ )
 	{

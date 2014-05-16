@@ -17,8 +17,9 @@
  <resources/>
  <connections/>
  <slots>
-  <signal>signal1()</signal>
   <slot>newRandom()</slot>
   <slot>newGrid()</slot>
+  <slot>newOneVertOneHoriz()</slot>
+  <slot>newCircle()</slot>
  </slots>
 </ui>

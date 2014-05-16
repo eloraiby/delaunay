@@ -24,13 +24,20 @@ protected:
 	virtual void paintEvent(QPaintEvent *e);
 
 public slots:
+	void		newDoc() { num_points = 0; this->repaint(); }
 	void		newRandom();
 	void		newGrid();
+	void		newCircle();
+	void		newOneVert();
+	void		newOneHoriz();
+	void		newTwoVert();
+	void		newTwoHoriz();
+	void		newOneVertOneHoriz();
 
 private:
 	Ui::DelForm *m_ui;
 	struct point2d {
-		float	x, y;
+		real	x, y;
 	};
 	point2d		points[MAX_POINTS];
 	size_t		num_points;

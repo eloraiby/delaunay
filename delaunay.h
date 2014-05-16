@@ -28,7 +28,15 @@
 extern "C" {
 #endif
 
-int			delaunay2d(float *points, int num_points, int **faces);
+#define USE_DOUBLE
+
+#ifdef USE_DOUBLE
+typedef double real;
+#else
+typedef float	real;
+#endif
+int			delaunay2d(real *points, int num_points, int **faces);
+
 #ifdef __cplusplus
 }
 #endif

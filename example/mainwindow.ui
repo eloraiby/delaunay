@@ -44,6 +44,9 @@
     <addaction name="actionRandom"/>
     <addaction name="actionGrid"/>
     <addaction name="actionCircular"/>
+    <addaction name="action1_Vertical_1_Horizontal"/>
+    <addaction name="action1_Vertical"/>
+    <addaction name="action1_Horizontal"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuAuto"/>
@@ -82,6 +85,21 @@
     <string>Circular</string>
    </property>
   </action>
+  <action name="action1_Vertical_1_Horizontal">
+   <property name="text">
+    <string>1 Vertical, 1 Horizontal</string>
+   </property>
+  </action>
+  <action name="action1_Vertical">
+   <property name="text">
+    <string>1 Vertical</string>
+   </property>
+  </action>
+  <action name="action1_Horizontal">
+   <property name="text">
+    <string>1 Horizontal</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -93,6 +111,13 @@
    <slots>
     <slot>newGrid()</slot>
     <slot>newRandom()</slot>
+    <slot>newCircle()</slot>
+    <slot>newOneVertOneHoriz()</slot>
+    <slot>newOneVert()</slot>
+    <slot>newOneHoriz()</slot>
+    <slot>newTwoVert()</slot>
+    <slot>newTwoHoriz()</slot>
+    <slot>newDoc()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -121,8 +146,88 @@
    <slot>newGrid()</slot>
    <hints>
     <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
      <x>299</x>
-     <y>199</y>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCircular</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>newCircle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action1_Vertical_1_Horizontal</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>newOneVertOneHoriz()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action1_Vertical</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>newOneVert()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action1_Horizontal</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>newOneHoriz()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_New</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>newDoc()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>299</x>
