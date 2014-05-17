@@ -6,17 +6,17 @@ Copyright 2005(c) Wael El Oraiby, All rights reserved.
 
 This is a library that builds a 2D Delaunay Construction using a divide and conquer algorithm very similar to the one by Guibas and Stolfi.
 
-Given a set of inputs points, the program will output Delaunay faces (not necessarly triangles, as long as the points are circomscribed to a circle).
+Given a set of inputs points, the program will output Delaunay faces (not necessarily triangles, as long as the points are circumscribed to a circle).
 
 Thanks to:
 
 * Raja Lehtihet for bug correction.
 * Dominique Schmitt and Jean-Claude Spehner for their valuable help and support.
-* Jonathan Richard Shewchuk for the robust computational geomtry predicates.
+* Jonathan Richard Shewchuk for the robust computational geometry predicates.
 
 ### Usage
 
-The algo builds the 2D Delaunay triangulation given a set of points of at least
+The algorithm builds the 2D Delaunay triangulation given a set of points of at least
 3 points using:
 
     int delaunay2d(real *points, int num_points, int **faces);
