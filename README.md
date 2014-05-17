@@ -19,11 +19,8 @@ The algo builds the 2D Delaunay triangulation given a set of points of at least
     int delaunay2d(real *points, int num_points, int **faces);
 
 `points`	: point set given as a sequence of tuple x0, y0, x1, y1, ....
-
 `num_points`	: number of given point
-
 `faces`		: the triangles given as a sequence: num verts, verts indices, num verts, verts indices first face is the external face.
-
 `return value`	: the number of created faces
 
 See the provided example if you want more information. It requires Qt 5 however.
@@ -31,10 +28,8 @@ See the provided example if you want more information. It requires Qt 5 however.
 ### Robustness
 The robustness is controlled by the `PREDICATE` macro in `delaunay.h`:
 
-`FAST_PREDICATE`	: Fast but very error prone 
-
+`FAST_PREDICATE`  : Fast but very error prone 
 `LOOSE_PREDICATE` : Use `EPSILON` defined in `delaunay.c` (less prone to error than `FAST_PREDICATE`)
-
 `EXACT_PREDICATE` : Use exact predicates.
 
 
