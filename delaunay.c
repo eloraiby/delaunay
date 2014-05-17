@@ -25,7 +25,7 @@
 
 #include "delaunay.h"
 
-#ifdef EXACT_PREDICATE
+#if PREDICATE == EXACT_PREDICATE
 extern void exactinit();
 extern real incircle(real* pa, real* pb, real* pc, real* pd);
 #endif
@@ -196,22 +196,22 @@ void del_free_halfedges( delaunay_t *del )
 /*
  * allocate memory for a face
  */
-static face_t* face_alloc()
-{
-	face_t	*f = (face_t*)malloc(sizeof(face_t));
-	assert( f != NULL );
-	memset(f, 0, sizeof(face_t));
-	return f;
-}
+//static face_t* face_alloc()
+//{
+//	face_t	*f = (face_t*)malloc(sizeof(face_t));
+//	assert( f != NULL );
+//	memset(f, 0, sizeof(face_t));
+//	return f;
+//}
 
 /*
  * free a face
  */
-static void face_free(face_t *f)
-{
-	assert( f != NULL );
-	free(f);
-}
+//static void face_free(face_t *f)
+//{
+//	assert( f != NULL );
+//	free(f);
+//}
 
 /*
 * compare 2 points when sorting
@@ -284,6 +284,7 @@ static real dabs( real a )
 /*
 * compute the circle given 3 points
 */
+#if PREDICATE == LOOSE_PREDICATE
 static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real *cx, real *cy, real *radius )
 {
 	mat3_t	ma, mbx, mby, mc;
@@ -343,6 +344,7 @@ static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real
 	*cy	= by / (REAL_TWO * a);
 	*radius	= sqrt(bx * bx + by * by - REAL_FOUR * a * c) / (REAL_TWO * dabs(a));
 }
+#endif
 
 /*
 * test if a point is inside a circle given by 3 points, 1 if inside, 0 if outside
