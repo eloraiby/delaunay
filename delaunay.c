@@ -1006,9 +1006,11 @@ void del_build_faces( delaunay_t *del )
 int delaunay2d(real *points, int num_points, int **faces)
 {
 	delaunay_t	del;
-	int			i, j, fbuff_size = 0;
+	int		i, j, fbuff_size = 0;
 
+#if PREDICATE == EXACT_PREDICATE
 	exactinit();
+#endif
 
 	/* allocate the points */
 	del.points	= (point2d_t**)malloc(num_points * sizeof(point2d_t*));

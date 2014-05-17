@@ -1,10 +1,12 @@
-# Relatively Robust Divide and Conquer 2D Delaunay Triangulation Algorithm
+# Relatively Robust Divide and Conquer 2D Delaunay Construction Algorithm
 
 Copyright 2005(c) Wael El Oraiby, All rights reserved. 
 
 ### Introduction
 
-This is a library that builds a 2D Delaunay triangulation using a divide and conquer algorithm very similar to the one by Guibas and Stolfi.
+This is a library that builds a 2D Delaunay Construction using a divide and conquer algorithm very similar to the one by Guibas and Stolfi.
+
+Given a set of inputs points, the program will output Delaunay faces (not necessarly triangles, as long as the points are circomscribed to a circle).
 
 Thanks to:
 
@@ -33,6 +35,7 @@ The robustness is controlled by the `PREDICATE` macro in `delaunay.h`:
 - `LOOSE_PREDICATE` : Use `EPSILON` defined in `delaunay.c` (less prone to error than `FAST_PREDICATE`)
 - `EXACT_PREDICATE` : Use exact predicates.
 
+Also the `USE_DOUBLE` is defined to true as double numbers decrease floating point errors. Comment it to use floating point. Note however that using `EXACT_PREDICATE` will automatically define it, if it's not already defined.
 
 ### Examples
 ![random](https://github.com/eloraiby/delaunay/raw/master/images/random.png)
