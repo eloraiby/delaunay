@@ -25,6 +25,11 @@
 
 #include "delaunay.h"
 
+#ifdef EXACT_PREDICATE
+extern void exactinit();
+extern real incircle(real* pa, real* pb, real* pc, real* pd);
+#endif
+
 #define ON_RIGHT	1
 #define ON_SEG		0
 #define ON_LEFT		-1
@@ -40,16 +45,20 @@ struct	delaunay_s;
 
 
 #ifdef USE_DOUBLE
-#define REAL_ZERO	0.0
-#define REAL_ONE	1.0
-#define REAL_TWO	2.0
-#define REAL_FOUR	4.0
+#	define REAL_ZERO	0.0
+#	define REAL_ONE		1.0
+#	define REAL_TWO		2.0
+#	define REAL_FOUR	4.0
+#	define TOLERANCE	(1024.0 * 1024.0)
 #else
-#define REAL_ZERO	0.0f
-#define REAL_ONE	1.0f
-#define REAL_TWO	2.0f
-#define REAL_FOUR	4.0f
+#	define REAL_ZERO	0.0f
+#	define REAL_ONE		1.0f
+#	define REAL_TWO		2.0f
+#	define REAL_FOUR	4.0f
+#	define TOLERANCE	(16.0f )
 #endif
+
+#define EPSILON		(REAL_ONE / TOLERANCE)
 
 typedef struct point2d_s	point2d_t;
 typedef struct face_s		face_t;
@@ -59,9 +68,9 @@ typedef real mat3_t[3][3];
 
 struct point2d_s
 {
-	int			idx;			/* point index in input buffer */
 	real			x, y;			/* point coordinates */
 	halfedge_t*		he;			/* point halfedge */
+	int			idx;			/* point index in input buffer */
 };
 
 struct face_s
@@ -93,6 +102,7 @@ struct delaunay_s
 	int			start_point;		/* start point index */
 	int			end_point;		/* end point index */
 };
+
 
 /*
 * 3x3 matrix determinant
@@ -201,6 +211,28 @@ static void face_free(face_t *f)
 {
 	assert( f != NULL );
 	free(f);
+}
+
+/*
+* compare 2 points when sorting
+*/
+static int cmp_points( const void *_pt0, const void *_pt1 )
+{
+	point2d_t		*pt0, *pt1;
+
+	pt0	= (point2d_t*)(*((point2d_t**)_pt0));
+	pt1	= (point2d_t*)(*((point2d_t**)_pt1));
+
+	if( pt0->x < pt1->x )
+		return -1;
+	else if( pt0->x > pt1->x )
+		return 1;
+	else if( pt0->y < pt1->y )
+		return -1;
+	else if( pt0->y > pt1->y )
+		return 1;
+	assert(0 && "2 or more points share the same exact coordinate");
+	return 0; /* Should not be given! */
 }
 
 /*
@@ -317,77 +349,90 @@ static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real
 */
 static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t *p )
 {
-//	mat3_t	ma, mbx, mby, mc;
-//	real	x0y0, x1y1, x2y2;
-//	real	a, bx, by, c, res;
+#if PREDICATE == EXACT_PREDICATE
+	real res	= incircle(&(pt0->x), &(pt1->x), &(pt2->x), &(p->x));
+	if( res > REAL_ZERO )
+		return INSIDE;
+	else if( res < REAL_ZERO )
+		return OUTSIDE;
 
-//	/* calculate x0y0, .... */
-//	x0y0		= pt0->x * pt0->x + pt0->y * pt0->y;
-//	x1y1		= pt1->x * pt1->x + pt1->y * pt1->y;
-//	x2y2		= pt2->x * pt2->x + pt2->y * pt2->y;
-
-//	/* setup A matrix */
-//	ma[0][0]	= pt0->x;
-//	ma[0][1]	= pt0->y;
-//	ma[1][0]	= pt1->x;
-//	ma[1][1]	= pt1->y;
-//	ma[2][0]	= pt2->x;
-//	ma[2][1]	= pt2->y;
-//	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
-
-//	/* setup Bx matrix */
-//	mbx[0][0]	= x0y0;
-//	mbx[1][0]	= x1y1;
-//	mbx[2][0]	= x2y2;
-//	mbx[0][1]	= pt0->y;
-//	mbx[1][1]	= pt1->y;
-//	mbx[2][1]	= pt2->y;
-//	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
-
-//	/* setup By matrix */
-//	mby[0][0]	= x0y0;
-//	mby[1][0]	= x1y1;
-//	mby[2][0]	= x2y2;
-//	mby[0][1]	= pt0->x;
-//	mby[1][1]	= pt1->x;
-//	mby[2][1]	= pt2->x;
-//	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
-
-//	/* setup C matrix */
-//	mc[0][0]	= x0y0;
-//	mc[1][0]	= x1y1;
-//	mc[2][0]	= x2y2;
-//	mc[0][1]	= pt0->x;
-//	mc[1][1]	= pt1->x;
-//	mc[2][1]	= pt2->x;
-//	mc[0][2]	= pt0->y;
-//	mc[1][2]	= pt1->y;
-//	mc[2][2]	= pt2->y;
-
-//	/* compute a, bx, by and c */
-//	a	= det3(&ma);
-//	bx	= det3(&mbx);
-//	by	= -det3(&mby);
-//	c	= -det3(&mc);
-
-//	res	= a * (p->x * p->x + p->y * p->y ) - bx * p->x - by * p->y + c;
-
-
-//	if( res < REAL_ZERO )
-//		return INSIDE;
-//	else if( res > REAL_ZERO )
-//		return OUTSIDE;
-
-//	return ON_CIRCLE;
+	return ON_CIRCLE;
+#endif
+#if PREDICATE == LOOSE_PREDICATE
 	real cx, cy, radius;
 	compute_circle(pt0, pt1, pt2, &cx, &cy, &radius);
 
 	real	distance	= sqrt((p->x - cx) * (p->x - cx) + (p->y - cy) * (p->y - cy));
-	if( distance < radius - 1.0/128.0 )
+	if( distance < radius - EPSILON )
 		return INSIDE;
-	else if(distance > radius + 1.0/128.0 )
+	else if(distance > radius + EPSILON )
 		return OUTSIDE;
 	return ON_CIRCLE;
+#endif
+#if PREDICATE == FAST_PREDICATE
+	mat3_t	ma, mbx, mby, mc;
+	real	x0y0, x1y1, x2y2;
+	real	a, bx, by, c, res;
+
+	/* calculate x0y0, .... */
+	x0y0		= pt0->x * pt0->x + pt0->y * pt0->y;
+	x1y1		= pt1->x * pt1->x + pt1->y * pt1->y;
+	x2y2		= pt2->x * pt2->x + pt2->y * pt2->y;
+
+	/* setup A matrix */
+	ma[0][0]	= pt0->x;
+	ma[0][1]	= pt0->y;
+	ma[1][0]	= pt1->x;
+	ma[1][1]	= pt1->y;
+	ma[2][0]	= pt2->x;
+	ma[2][1]	= pt2->y;
+	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
+
+	/* setup Bx matrix */
+	mbx[0][0]	= x0y0;
+	mbx[1][0]	= x1y1;
+	mbx[2][0]	= x2y2;
+	mbx[0][1]	= pt0->y;
+	mbx[1][1]	= pt1->y;
+	mbx[2][1]	= pt2->y;
+	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
+
+	/* setup By matrix */
+	mby[0][0]	= x0y0;
+	mby[1][0]	= x1y1;
+	mby[2][0]	= x2y2;
+	mby[0][1]	= pt0->x;
+	mby[1][1]	= pt1->x;
+	mby[2][1]	= pt2->x;
+	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
+
+	/* setup C matrix */
+	mc[0][0]	= x0y0;
+	mc[1][0]	= x1y1;
+	mc[2][0]	= x2y2;
+	mc[0][1]	= pt0->x;
+	mc[1][1]	= pt1->x;
+	mc[2][1]	= pt2->x;
+	mc[0][2]	= pt0->y;
+	mc[1][2]	= pt1->y;
+	mc[2][2]	= pt2->y;
+
+	/* compute a, bx, by and c */
+	a	= det3(&ma);
+	bx	= det3(&mbx);
+	by	= -det3(&mby);
+	c	= -det3(&mc);
+
+	res	= a * (p->x * p->x + p->y * p->y ) - bx * p->x - by * p->y + c;
+
+
+	if( res < REAL_ZERO )
+		return INSIDE;
+	else if( res > REAL_ZERO )
+		return OUTSIDE;
+
+	return ON_CIRCLE;
+#endif
 }
 
 /*
@@ -640,6 +685,7 @@ static halfedge_t* del_valid_left( halfedge_t* b )
 	{
 		/* 3 points aren't colinear */
 		/* as long as the 4 points belong to the same circle, do the cleaning */
+		assert( v != u && "1: floating point precision error");
 		while( v != d && v != g && in_circle(g, d, u, v) == INSIDE )
 		{
 			c	= b->next;
@@ -650,6 +696,7 @@ static halfedge_t* del_valid_left( halfedge_t* b )
 			v	= b->next->pair->vertex;
 		}
 
+		assert( v != u && "2: floating point precision error");
 		if( v != d && v != g && in_circle(g, d, u, v) == ON_CIRCLE )
 		{
 			du	= du->prev;
@@ -682,6 +729,7 @@ static halfedge_t* del_valid_right( halfedge_t *b )
 
 	if( classify_point_seg(lv, rv, u) == ON_LEFT )
 	{
+		assert( v != u && "1: floating point precision error");
 		while( v != lv && v != rv && in_circle(lv, rv, u, v) == INSIDE )
 		{
 			c	= b->prev;
@@ -692,6 +740,7 @@ static halfedge_t* del_valid_right( halfedge_t *b )
 			v	= b->prev->pair->vertex;
 		}
 
+		assert( v != u && "1: floating point precision error");
 		if( v != lv && v != rv && in_circle(lv, rv, u, v) == ON_CIRCLE )
 		{
 			du	= du->next;
@@ -946,28 +995,6 @@ void del_build_faces( delaunay_t *del )
 }
 
 /*
-* compare 2 points when sorting
-*/
-static int cmp_points( const void *_pt0, const void *_pt1 )
-{
-	point2d_t		*pt0, *pt1;
-
-	pt0	= (point2d_t*)(*((point2d_t**)_pt0));
-	pt1	= (point2d_t*)(*((point2d_t**)_pt1));
-
-	if( pt0->x < pt1->x )
-		return -1;
-	else if( pt0->x > pt1->x )
-		return 1;
-	else if( pt0->y < pt1->y )
-		return -1;
-	else if( pt0->y > pt1->y )
-		return 1;
-	assert(0 && "2 or more points share the same exact coordinate");
-	return 0; /* Should not be given! */
-}
-
-/*
  * build the 2D Delaunay triangulation given a set of points of at least 3 points
  *
  * @points: point set given as a sequence of tuple x0, y0, x1, y1, ....
@@ -980,6 +1007,8 @@ int delaunay2d(real *points, int num_points, int **faces)
 {
 	delaunay_t	del;
 	int			i, j, fbuff_size = 0;
+
+	exactinit();
 
 	/* allocate the points */
 	del.points	= (point2d_t**)malloc(num_points * sizeof(point2d_t*));

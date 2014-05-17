@@ -167,9 +167,9 @@ DelForm::newCircle() {
 		for( int x = 0; x < 3; ++x ) {
 			int cx	= 100 + x * 150;
 			int cy	= 100 + y * 150;
-			int radius	= 10 + rand() & 0x3F;
+			int radius	= 10 + (rand() & 0x3F);
 
-			for(float a = 0.0f; a < 3.1415f * 2.0f; a += 0.5f) {
+			for(real a = 0.0; a < 3.1415 * 2.0f; a += 0.5) {
 				points[num_points].x	= 100 + cx + cos(a) * radius;
 				points[num_points].y	= 100 + cy + sin(a) * radius;
 
