@@ -50,7 +50,7 @@ These stability issues when they happen are related to the in_circle or classify
 
 ### License
 
-The delaunay.c source code is licensed under GPL version 3.0 or later. If you want it under another license, contact me.
+The delaunay.c source code is licensed under GPL version 3.0 or later. If you want it under another license, [contact me](https://github.com/eloraiby/eloraiby.github.com/raw/master/email.svg).
 
 
 
