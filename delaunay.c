@@ -70,7 +70,7 @@ struct point2d_s
 {
 	real			x, y;			/* point coordinates */
 	halfedge_t*		he;			/* point halfedge */
-	int			idx;			/* point index in input buffer */
+	unsigned int		idx;			/* point index in input buffer */
 };
 
 struct face_s
@@ -80,7 +80,7 @@ struct face_s
 	point2d_t*		p[3];
 */
 	halfedge_t*		he;			/* a pointing half edge */
-	int			num_verts;		/* number of vertices on this face */
+	unsigned int		num_verts;		/* number of vertices on this face */
 };
 
 struct halfedge_s
@@ -98,9 +98,9 @@ struct delaunay_s
 	halfedge_t*		leftmost_he;		/* left most halfedge */
 	point2d_t**		points;			/* pointer to points */
 	face_t*			faces;			/* faces of delaunay */
-	int			num_faces;		/* face count */
-	int			start_point;		/* start point index */
-	int			end_point;		/* end point index */
+	unsigned int		num_faces;		/* face count */
+	unsigned int		start_point;		/* start point index */
+	unsigned int		end_point;		/* end point index */
 };
 
 
@@ -170,7 +170,7 @@ static void halfedge_free( halfedge_t* d )
 */
 void del_free_halfedges( delaunay_t *del )
 {
-	int			i;
+	unsigned int		i;
 	halfedge_t		*d, *sig;
 
 	/* if there is nothing to do */
@@ -976,7 +976,7 @@ static void build_halfedge_face( delaunay_t *del, halfedge_t *d )
 */
 void del_build_faces( delaunay_t *del )
 {
-	int		i;
+	unsigned int	i;
 	halfedge_t	*curr;
 
 	del->num_faces	= 0;
@@ -997,18 +997,12 @@ void del_build_faces( delaunay_t *del )
 }
 
 /*
- * build the 2D Delaunay triangulation given a set of points of at least 3 points
- *
- * @points: point set given as a sequence of tuple x0, y0, x1, y1, ....
- * @num_points: number of given point
- * @faces: the triangles given as a sequence: num verts, verts indices, num verts, verts indices
- *		first face is the external face
- * @return: the number of created faces
- */
-int delaunay2d(real *points, int num_points, int **faces)
-{
+*/
+delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points, incircle_predicate_t pred) {
+	delaunay2d_t*	res	= NULL;
 	delaunay_t	del;
-	int		i, j, fbuff_size = 0;
+	unsigned int	i, j, fbuff_size = 0;
+	unsigned int*	faces	= NULL;
 
 #if PREDICATE == EXACT_PREDICATE
 	exactinit();
@@ -1024,14 +1018,13 @@ int delaunay2d(real *points, int num_points, int **faces)
 	{
 		del.points[i]		= point_alloc();
 		del.points[i]->idx	= i;
-		del.points[i]->x	= points[i * 2];
-		del.points[i]->y	= points[i * 2 + 1];
+		del.points[i]->x	= points[i].x;
+		del.points[i]->y	= points[i].y;
 	}
 
 	qsort(del.points, num_points, sizeof(point2d_t*), cmp_points);
 
-	if( num_points >= 3 )
-	{
+	if( num_points >= 3 ) {
 		del_divide_and_conquer( &del, 0, num_points - 1 );
 
 		del_build_faces( &del );
@@ -1040,19 +1033,19 @@ int delaunay2d(real *points, int num_points, int **faces)
 		for( i = 0; i < del.num_faces; i++ )
 			fbuff_size	+= del.faces[i].num_verts + 1;
 
-		(*faces) = (int*)malloc(sizeof(int) * fbuff_size);
+		faces = (unsigned int*)malloc(sizeof(unsigned int) * fbuff_size);
 
 		j = 0;
 		for( i = 0; i < del.num_faces; i++ )
 		{
 			halfedge_t	*curr;
 
-			(*faces)[j]	= del.faces[i].num_verts;
+			faces[j]	= del.faces[i].num_verts;
 			j++;
 
 			curr	= del.faces[i].he;
 			do {
-				(*faces)[j]	= curr->vertex->idx;
+				faces[j]	= curr->vertex->idx;
 				j++;
 				curr	= curr->pair->prev;
 			} while( curr != del.faces[i].he );
@@ -1067,5 +1060,18 @@ int delaunay2d(real *points, int num_points, int **faces)
 		free(del.points);
 	}
 
-	return del.num_faces;
+	res		= (delaunay2d_t*)malloc(sizeof(delaunay2d_t));
+	res->num_points	= num_points;
+	res->points	= malloc(sizeof(del_point2d_t) * num_points);
+	memcpy(res->points, points, sizeof(del_point2d_t) * num_points);
+	res->num_faces	= del.num_faces;
+	res->faces	= faces;
+
+	return res;
+}
+
+void delaunay2d_release(delaunay2d_t *del) {
+	free(del->faces);
+	free(del->points);
+	free(del);
 }

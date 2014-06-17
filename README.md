@@ -10,7 +10,7 @@ Given a set of inputs points, the program will output Delaunay faces (not necess
 
 Thanks to:
 
-* Raja Lehtihet for bug correction.
+* Raja Lehtihet for bug fixes and suggestions.
 * Dominique Schmitt and Jean-Claude Spehner for their valuable help and support.
 * Jonathan Richard Shewchuk for the robust computational geometry predicates.
 
@@ -19,12 +19,18 @@ Thanks to:
 The algorithm builds the 2D Delaunay triangulation given a set of points of at least
 3 points using:
 
-    int delaunay2d(real *points, int num_points, int **faces);
+    delaunay2d_t* delaunay2d(del_point2d_t *points, unsigned int num_points, incircle_predicate_t pred);
 
 - `points`	: point set given as a sequence of tuple x0, y0, x1, y1, ....
 - `num_points`	: number of given point
-- `faces`		: the triangles given as a sequence: num verts, verts indices, num verts, verts indices first face is the external face.
+- `pred`		: the incircle predicate.
 - `return value`	: the number of created faces
+
+the returned `delaunay2d_t` structures contains:
+- `num_points`	: the input point count
+- `points`	: a copy of the input points
+- `num_faces`	: the output face count
+- `faces`	: the output faces indices (faces are not necessarily triangles). The first face is the external face.
 
 See the provided example if you want more information. The example requires Qt 5 however.
 
@@ -50,7 +56,7 @@ These stability issues when they happen are related to the in_circle or classify
 
 ### License
 
-The delaunay.c source code is licensed under GPL version 3.0 or later. If you want it under another license, [contact me](https://github.com/eloraiby/eloraiby.github.com/raw/master/email.svg).
+The delaunay.c source code is licensed under Affero GPL version 3.0 or later. While I think this license is the best for OSS, you can obtain a more permissive license suitable for closed source programs for a modest fee. You can contact me for that [contact me](https://github.com/eloraiby/eloraiby.github.com/raw/master/email.svg).
 
 
 

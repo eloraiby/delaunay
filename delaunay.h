@@ -35,7 +35,7 @@ extern "C" {
 #define LOOSE_PREDICATE	2	/* loose with epsilon defined in the delaunay file - errors will happen but less frequently */
 #define EXACT_PREDICATE	3	/* use exact arithmetic - slower, but shouldn't produce any floating point error */
 
-#define PREDICATE	LOOSE_PREDICATE
+#define PREDICATE	EXACT_PREDICATE
 
 #if PREDICATE == EXACT_PREDICATE && !defined(USE_DOUBLE)
 #	define USE_DOUBLE
@@ -46,7 +46,44 @@ typedef double real;
 #else
 typedef float	real;
 #endif
-int			delaunay2d(real *points, int num_points, int **faces);
+
+typedef struct {
+	real	x, y;
+} del_point2d_t;
+
+typedef struct {
+	/** input points count */
+	unsigned int	num_points;
+
+	/** the input points */
+	del_point2d_t*	points;
+
+	/** number of returned faces */
+	unsigned int	num_faces;
+
+	/** the triangles given as a sequence: num verts, verts indices, num verts, verts indices first face is the external face */
+	unsigned int*	faces;
+} delaunay2d_t;
+
+typedef int		(*incircle_predicate_t)(del_point2d_t* p0, del_point2d_t* p1, del_point2d_t* p2, del_point2d_t* p3);
+
+/*
+ * build the 2D Delaunay triangulation given a set of points of at least 3 points
+ *
+ * @points: point set given as a sequence of tuple x0, y0, x1, y1, ....
+ * @num_points: number of given point
+ * @preds: the incircle predicate
+ * @faces: the triangles given as a sequence: num verts, verts indices, num verts, verts indices
+ *		first face is the external face
+ * @pred: incircle predicate
+ * @return: the number of created faces
+ */
+delaunay2d_t*			delaunay2d_from(del_point2d_t *points, unsigned int num_points, incircle_predicate_t pred);
+
+/*
+ * release a delaunay2d object
+ */
+void				delaunay2d_release(delaunay2d_t* del);
 
 #ifdef __cplusplus
 }

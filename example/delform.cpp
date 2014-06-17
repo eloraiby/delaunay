@@ -70,9 +70,8 @@ void DelForm::paintEvent(QPaintEvent *e)
 		//del_test_faces( &del );
 		del_free_halfedges( &del );
 		*/
-		int *faces = NULL;
 		int offset = 0;
-		int num_faces = delaunay2d((real*)points, num_points, &faces);
+		delaunay2d_t*	res = delaunay2d_from(points, num_points, NULL);
 
 		char str[512];
 
@@ -80,14 +79,14 @@ void DelForm::paintEvent(QPaintEvent *e)
 
 		QPointF	pf[512];
 
-		for( i = 0; i < num_faces; i++ )
+		for( i = 0; i < res->num_faces; i++ )
 		{
-			int num_verts = faces[offset];
+			int num_verts = res->faces[offset];
 			offset++;
 			for( int j = 0; j < num_verts; j++ )
 			{
-				int p0 = faces[offset + j];
-				int p1 = faces[offset + (j+1) % num_verts];
+				int p0 = res->faces[offset + j];
+				int p1 = res->faces[offset + (j+1) % num_verts];
 				pf[j] = QPointF(points[p0].x, points[p0].y);
 				//painter.drawLine(points[p0].x, points[p0].y, points[p1].x, points[p1].y);
 			}
@@ -106,7 +105,7 @@ void DelForm::paintEvent(QPaintEvent *e)
 
 		//sprintf(str, "number of convex hull vertices: %d, points: %ld", faces[0], num_points);
 
-		free(faces);
+		delaunay2d_release(res);
 
 		//painter.setBrush(Qt::NoBrush);
 		//painter.drawText(rect(), Qt::AlignCenter, str);
@@ -126,13 +125,32 @@ DelForm::newGrid() {
 
 	num_points	= 0;
 
-	for(int y = 0; y < 16; ++y) {
-		for( int x = 0; x < 16; ++x ) {
-			points[num_points].x	= 100 + x * 32;
-			points[num_points].y	= 100 + y * 32;
+//	for(int y = 0; y < 16; ++y) {
+//		for( int x = 0; x < 16; ++x ) {
+//			points[num_points].x	= 100 + x * 32;
+//			points[num_points].y	= 100 + y * 32;
 
-			num_points++;
-		}
+//			num_points++;
+//		}
+//	}
+
+	num_points = 100;
+	real x1[num_points],y1[num_points];
+	real x[num_points],y[num_points];
+	for( int i = 0; i < num_points; ++i ) {
+		x1[ i ] = y1[ i ] = i * 10;
+	}
+	for( int i = 0; i < num_points; ++i ){
+		x[ i ] = x1[ i / 10 ];
+		y[ i ] = y1[ i % 10 ];
+	}
+	int j = 0, k= 0;
+	for(int i=0; i < 2 * num_points; i++) {
+		points[i].x = x[j];
+		j++;
+		points[i].y = y[k];
+		k++;
+
 	}
 
 	this->repaint();

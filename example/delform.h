@@ -39,7 +39,7 @@ private:
 	struct point2d {
 		real	x, y;
 	};
-	point2d		points[MAX_POINTS];
+	del_point2d_t	points[MAX_POINTS];
 	size_t		num_points;
 };
 
