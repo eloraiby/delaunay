@@ -28,24 +28,13 @@
 extern "C" {
 #endif
 
-/* define the floating point type, comment to use float - Be careful "float" type will assert more often */
-#define USE_DOUBLE
-
 #define FAST_PREDICATE	1	/* fast but floating point errors are more likely to occur */
 #define LOOSE_PREDICATE	2	/* loose with epsilon defined in the delaunay file - errors will happen but less frequently */
 #define EXACT_PREDICATE	3	/* use exact arithmetic - slower, but shouldn't produce any floating point error */
 
 #define PREDICATE	EXACT_PREDICATE
 
-#if PREDICATE == EXACT_PREDICATE && !defined(USE_DOUBLE)
-#	define USE_DOUBLE
-#endif
-
-#ifdef USE_DOUBLE
-typedef double real;
-#else
-typedef float	real;
-#endif
+typedef long double real;
 
 typedef struct {
 	real	x, y;

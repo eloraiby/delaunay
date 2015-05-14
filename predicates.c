@@ -129,7 +129,8 @@
 #define INEXACT                          /* Nothing */
 /* #define INEXACT volatile */
 
-#define REAL double                      /* float or double */
+/* FIX issue #3 : x86 processor is truncating the floating point register */
+#define REAL long double                      /* float or double */
 #define REALPRINT doubleprint
 #define REALRAND doublerand
 #define NARROWRAND narrowdoublerand
