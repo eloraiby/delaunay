@@ -19,12 +19,12 @@ Thanks to:
 The algorithm builds the 2D Delaunay triangulation given a set of points of at least
 3 points using:
 
-    delaunay2d_t* delaunay2d(del_point2d_t *points, unsigned int num_points, incircle_predicate_t pred);
+    delaunay2d_t* delaunay2d(del_point2d_t *points, unsigned int num_points);
 
 - `points`	: point set given as a sequence of tuple x0, y0, x1, y1, ....
 - `num_points`	: number of given point
 - `pred`		: the incircle predicate.
-- `return value`	: the number of created faces
+- `return value`	: the created topology
 
 the returned `delaunay2d_t` structures contains:
 - `num_points`	: the input point count
@@ -35,13 +35,9 @@ the returned `delaunay2d_t` structures contains:
 See the provided example if you want more information. The example requires Qt 5 however.
 
 ### Robustness
-The robustness is controlled by the `PREDICATE` macro in `delaunay.h`:
+Currently robustness is achieved by using 64 bits precision inputs and computation using 80 bits. It's possible to achieve maximum the robustness using __float128 for computation. This however is not supported with ARM.
 
-- `FAST_PREDICATE`  : Fast but very error prone 
-- `LOOSE_PREDICATE` : Use `EPSILON` defined in `delaunay.c` (less prone to error than `FAST_PREDICATE`)
-- `EXACT_PREDICATE` : Use exact predicates.
-
-Also the `USE_DOUBLE` is defined to true as double numbers decrease floating point errors. Comment it to use floating point. Note however that using `EXACT_PREDICATE` will automatically define it, if it's not already defined.
+Historical Note: Previous version of delaunay used the Predicates from Jonathan Richard Shewchuk. The code is however unstable when compiled with gcc with -m32 and run on x64 machines. As such the code was removed.
 
 ### Examples
 ![random](https://github.com/eloraiby/delaunay/raw/master/images/random.png)
@@ -51,8 +47,7 @@ Also the `USE_DOUBLE` is defined to true as double numbers decrease floating poi
 
 ### Notes
 
-The implementation is relatively robust (take a look at the pictures above, some of these cases will crash most freely available implementations), in case of input or predicate floating point rounding errors, it will assert. 
-These stability issues when they happen are related to the in_circle or classify_point_seg predicates. Solving the remaining issues requires exact floating point arithmetic (and will reduce performance). Nonetheless, these issues will be solved when time permits.
+The implementation is relatively robust (take a look at the pictures above, some of these cases will crash most freely available implementations), in case of input or predicate floating point rounding errors, it will assert. Note that while the robustness is more than enough for most application, there is still room for improvement.
 
 ### License
 

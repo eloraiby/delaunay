@@ -56,7 +56,7 @@ typedef struct {
  * @preds: the incircle predicate
  * @faces: the triangles given as a sequence: num verts, verts indices, num verts, verts indices
  *		first face is the external face
- * @return: the created faces
+ * @return: the created topology
  */
 delaunay2d_t*			delaunay2d_from(del_point2d_t *points, unsigned int num_points);
 
