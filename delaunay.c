@@ -44,27 +44,19 @@ struct	halfedge_s;
 struct	delaunay_s;
 
 
-#ifdef USE_DOUBLE
-#	define REAL_ZERO	0.0
-#	define REAL_ONE		1.0
-#	define REAL_TWO		2.0
-#	define REAL_FOUR	4.0
-#	define TOLERANCE	(1024.0 * 1024.0)
-#else
-#	define REAL_ZERO	0.0f
-#	define REAL_ONE		1.0f
-#	define REAL_TWO		2.0f
-#	define REAL_FOUR	4.0f
-#	define TOLERANCE	(16.0f )
-#endif
+#	define REAL_ZERO	0.0l
+#	define REAL_ONE		1.0l
+#	define REAL_TWO		2.0l
+#	define REAL_FOUR	4.0l
 
-#define EPSILON		(REAL_ONE / TOLERANCE)
 
 typedef struct point2d_s	point2d_t;
 typedef struct face_s		face_t;
 typedef struct halfedge_s	halfedge_t;
 typedef struct delaunay_s	delaunay_t;
-typedef real mat3_t[3][3];
+
+typedef long double lreal;
+typedef lreal mat3_t[3][3];
 
 struct point2d_s
 {
@@ -75,10 +67,6 @@ struct point2d_s
 
 struct face_s
 {
-/*	real			radius;
-	real			cx, cy;
-	point2d_t*		p[3];
-*/
 	halfedge_t*		he;			/* a pointing half edge */
 	unsigned int		num_verts;		/* number of vertices on this face */
 };
@@ -107,13 +95,13 @@ struct delaunay_s
 /*
 * 3x3 matrix determinant
 */
-static real det3( mat3_t *m )
+static lreal det3(mat3_t m)
 {
-	real		res;
+	lreal	res;
 
-	res		= ((*m)[0][0]) * (((*m)[1][1]) * ((*m)[2][2]) - ((*m)[1][2]) * ((*m)[2][1]))
-			- ((*m)[0][1]) * (((*m)[1][0]) * ((*m)[2][2]) - ((*m)[1][2]) * ((*m)[2][0]))
-			+ ((*m)[0][2]) * (((*m)[1][0]) * ((*m)[2][1]) - ((*m)[1][1]) * ((*m)[2][0]));
+	res		= m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+			- m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+			+ m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
 
 	return res;
 }
@@ -194,26 +182,6 @@ void del_free_halfedges( delaunay_t *del )
 }
 
 /*
- * allocate memory for a face
- */
-//static face_t* face_alloc()
-//{
-//	face_t	*f = (face_t*)malloc(sizeof(face_t));
-//	assert( f != NULL );
-//	memset(f, 0, sizeof(face_t));
-//	return f;
-//}
-
-/*
- * free a face
- */
-//static void face_free(face_t *f)
-//{
-//	assert( f != NULL );
-//	free(f);
-//}
-
-/*
 * compare 2 points when sorting
 */
 static int cmp_points( const void *_pt0, const void *_pt1 )
@@ -240,16 +208,16 @@ static int cmp_points( const void *_pt0, const void *_pt1 )
 */
 static int classify_point_seg( point2d_t *s, point2d_t *e, point2d_t *pt )
 {
-	point2d_t		se, spt;
-	real		res;
+	lreal		se_x, se_y, spt_x, spt_y;
+	lreal		res;
 
-	se.x	= e->x - s->x;
-	se.y	= e->y - s->y;
+	se_x	= e->x - s->x;
+	se_y	= e->y - s->y;
 
-	spt.x	= pt->x - s->x;
-	spt.y	= pt->y - s->y;
+	spt_x	= pt->x - s->x;
+	spt_y	= pt->y - s->y;
 
-	res	= (( se.x * spt.y ) - ( se.y * spt.x ));
+	res	= (( se_x * spt_y ) - ( se_y * spt_x ));
 	if( res < REAL_ZERO )
 		return ON_RIGHT;
 	else if( res > REAL_ZERO )
@@ -282,71 +250,6 @@ static real dabs( real a )
 }
 
 /*
-* compute the circle given 3 points
-*/
-#if PREDICATE == LOOSE_PREDICATE
-static void compute_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, real *cx, real *cy, real *radius )
-{
-	mat3_t	ma, mbx, mby, mc;
-	real	x0y0, x1y1, x2y2;
-	real	a, bx, by, c;
-
-	/* calculate x0y0, .... */
-	x0y0		= pt0->x * pt0->x + pt0->y * pt0->y;
-	x1y1		= pt1->x * pt1->x + pt1->y * pt1->y;
-	x2y2		= pt2->x * pt2->x + pt2->y * pt2->y;
-
-	/* setup A matrix */
-	ma[0][0]	= pt0->x;
-	ma[0][1]	= pt0->y;
-	ma[1][0]	= pt1->x;
-	ma[1][1]	= pt1->y;
-	ma[2][0]	= pt2->x;
-	ma[2][1]	= pt2->y;
-	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
-
-	/* setup Bx matrix */
-	mbx[0][0]	= x0y0;
-	mbx[1][0]	= x1y1;
-	mbx[2][0]	= x2y2;
-	mbx[0][1]	= pt0->y;
-	mbx[1][1]	= pt1->y;
-	mbx[2][1]	= pt2->y;
-	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
-
-	/* setup By matrix */
-	mby[0][0]	= x0y0;
-	mby[1][0]	= x1y1;
-	mby[2][0]	= x2y2;
-	mby[0][1]	= pt0->x;
-	mby[1][1]	= pt1->x;
-	mby[2][1]	= pt2->x;
-	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
-
-	/* setup C matrix */
-	mc[0][0]	= x0y0;
-	mc[1][0]	= x1y1;
-	mc[2][0]	= x2y2;
-	mc[0][1]	= pt0->x;
-	mc[1][1]	= pt1->x;
-	mc[2][1]	= pt2->x;
-	mc[0][2]	= pt0->y;
-	mc[1][2]	= pt1->y;
-	mc[2][2]	= pt2->y;
-
-	/* compute a, bx, by and c */
-	a	= det3(&ma);
-	bx	= det3(&mbx);
-	by	= -det3(&mby);
-	c	= -det3(&mc);
-
-	*cx	= bx / (REAL_TWO * a);
-	*cy	= by / (REAL_TWO * a);
-	*radius	= sqrt(bx * bx + by * by - REAL_FOUR * a * c) / (REAL_TWO * dabs(a));
-}
-#endif
-
-/*
 * test if a point is inside a circle given by 3 points, 1 if inside, 0 if outside
 */
 static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t *p )
@@ -360,73 +263,38 @@ static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t 
 
 	return ON_CIRCLE;
 #endif
-#if PREDICATE == LOOSE_PREDICATE
-	real cx, cy, radius;
-	compute_circle(pt0, pt1, pt2, &cx, &cy, &radius);
-
-	real	distance	= sqrt((p->x - cx) * (p->x - cx) + (p->y - cy) * (p->y - cy));
-	if( distance < radius - EPSILON )
-		return INSIDE;
-	else if(distance > radius + EPSILON )
-		return OUTSIDE;
-	return ON_CIRCLE;
-#endif
 #if PREDICATE == FAST_PREDICATE
-	mat3_t	ma, mbx, mby, mc;
-	real	x0y0, x1y1, x2y2;
-	real	a, bx, by, c, res;
+	// reduce the computational complexity by substracting the last row of the matrix
+	// ref: https://www.cs.cmu.edu/~quake/robust.html
+	lreal	p0p_x, p0p_y, p1p_x, p1p_y, p2p_x, p2p_y, p0p, p1p, p2p, res;
+	mat3_t	m;
 
-	/* calculate x0y0, .... */
-	x0y0		= pt0->x * pt0->x + pt0->y * pt0->y;
-	x1y1		= pt1->x * pt1->x + pt1->y * pt1->y;
-	x2y2		= pt2->x * pt2->x + pt2->y * pt2->y;
+	p0p_x	= pt0->x - p->x;
+	p0p_y	= pt0->y - p->y;
 
-	/* setup A matrix */
-	ma[0][0]	= pt0->x;
-	ma[0][1]	= pt0->y;
-	ma[1][0]	= pt1->x;
-	ma[1][1]	= pt1->y;
-	ma[2][0]	= pt2->x;
-	ma[2][1]	= pt2->y;
-	ma[0][2]	= ma[1][2] = ma[2][2] = REAL_ONE;
+	p1p_x	= pt1->x - p->x;
+	p1p_y	= pt1->y - p->y;
 
-	/* setup Bx matrix */
-	mbx[0][0]	= x0y0;
-	mbx[1][0]	= x1y1;
-	mbx[2][0]	= x2y2;
-	mbx[0][1]	= pt0->y;
-	mbx[1][1]	= pt1->y;
-	mbx[2][1]	= pt2->y;
-	mbx[0][2]	= mbx[1][2] = mbx[2][2] = REAL_ONE;
+	p2p_x	= pt2->x - p->x;
+	p2p_y	= pt2->y - p->y;
 
-	/* setup By matrix */
-	mby[0][0]	= x0y0;
-	mby[1][0]	= x1y1;
-	mby[2][0]	= x2y2;
-	mby[0][1]	= pt0->x;
-	mby[1][1]	= pt1->x;
-	mby[2][1]	= pt2->x;
-	mby[0][2]	= mby[1][2] = mby[2][2] = REAL_ONE;
+	p0p	= p0p_x * p0p_x + p0p_y * p0p_y;
+	p1p	= p1p_x * p1p_x + p1p_y * p1p_y;
+	p2p	= p2p_x * p2p_x + p2p_y * p2p_y;
 
-	/* setup C matrix */
-	mc[0][0]	= x0y0;
-	mc[1][0]	= x1y1;
-	mc[2][0]	= x2y2;
-	mc[0][1]	= pt0->x;
-	mc[1][1]	= pt1->x;
-	mc[2][1]	= pt2->x;
-	mc[0][2]	= pt0->y;
-	mc[1][2]	= pt1->y;
-	mc[2][2]	= pt2->y;
+	m[0][0]	= p0p_x;
+	m[0][1]	= p0p_y;
+	m[0][2] = p0p;
 
-	/* compute a, bx, by and c */
-	a	= det3(&ma);
-	bx	= det3(&mbx);
-	by	= -det3(&mby);
-	c	= -det3(&mc);
+	m[1][0]	= p1p_x;
+	m[1][1]	= p1p_y;
+	m[1][2] = p1p;
 
-	res	= a * (p->x * p->x + p->y * p->y ) - bx * p->x - by * p->y + c;
+	m[2][0]	= p2p_x;
+	m[2][1]	= p2p_y;
+	m[2][2] = p2p;
 
+	res	= -det3(m);
 
 	if( res < REAL_ZERO )
 		return INSIDE;
@@ -956,19 +824,6 @@ static void build_halfedge_face( delaunay_t *del, halfedge_t *d )
 	} while( curr != d );
 
 	(del->num_faces)++;
-
-/*	if( d->face.radius < 0.0 )
-	{
-		d->face.p[0]	= d->vertex;
-		d->face.p[1]	= d->pair->vertex;
-		d->face.p[2]	= d->pair->prev->pair->vertex;
-
-		if( classify_point_seg( d->face.p[0], d->face.p[1], d->face.p[2] ) == ON_LEFT )
-		{
-			compute_circle(d->face.p[0], d->face.p[1], d->face.p[2], &(d->face.cx), &(d->face.cy), &(d->face.radius));
-		}
-	}
-*/
 }
 
 /*
@@ -998,7 +853,7 @@ void del_build_faces( delaunay_t *del )
 
 /*
 */
-delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points, incircle_predicate_t pred) {
+delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 	delaunay2d_t*	res	= NULL;
 	delaunay_t	del;
 	unsigned int	i, j, fbuff_size = 0;

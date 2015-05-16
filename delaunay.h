@@ -29,12 +29,11 @@ extern "C" {
 #endif
 
 #define FAST_PREDICATE	1	/* fast but floating point errors are more likely to occur */
-#define LOOSE_PREDICATE	2	/* loose with epsilon defined in the delaunay file - errors will happen but less frequently */
-#define EXACT_PREDICATE	3	/* use exact arithmetic - slower, but shouldn't produce any floating point error */
+#define EXACT_PREDICATE	2	/* use exact arithmetic - slower, but shouldn't produce any floating point error */
 
-#define PREDICATE	EXACT_PREDICATE
+#define PREDICATE	FAST_PREDICATE
 
-typedef long double real;
+typedef double real;
 
 typedef struct {
 	real	x, y;
@@ -54,8 +53,6 @@ typedef struct {
 	unsigned int*	faces;
 } delaunay2d_t;
 
-typedef int		(*incircle_predicate_t)(del_point2d_t* p0, del_point2d_t* p1, del_point2d_t* p2, del_point2d_t* p3);
-
 /*
  * build the 2D Delaunay triangulation given a set of points of at least 3 points
  *
@@ -64,10 +61,9 @@ typedef int		(*incircle_predicate_t)(del_point2d_t* p0, del_point2d_t* p1, del_p
  * @preds: the incircle predicate
  * @faces: the triangles given as a sequence: num verts, verts indices, num verts, verts indices
  *		first face is the external face
- * @pred: incircle predicate
- * @return: the number of created faces
+ * @return: the created faces
  */
-delaunay2d_t*			delaunay2d_from(del_point2d_t *points, unsigned int num_points, incircle_predicate_t pred);
+delaunay2d_t*			delaunay2d_from(del_point2d_t *points, unsigned int num_points);
 
 /*
  * release a delaunay2d object

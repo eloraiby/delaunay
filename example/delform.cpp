@@ -71,7 +71,7 @@ void DelForm::paintEvent(QPaintEvent *e)
 		del_free_halfedges( &del );
 		*/
 		int offset = 0;
-		delaunay2d_t*	res = delaunay2d_from(points, num_points, NULL);
+		delaunay2d_t*	res = delaunay2d_from(points, num_points);
 
 		char str[512];
 
