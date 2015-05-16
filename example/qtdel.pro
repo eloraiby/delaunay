@@ -7,8 +7,7 @@ TEMPLATE = app
 SOURCES += main.cpp \
     mainwindow.cpp \
     delform.cpp \
-    ../delaunay.c \
-    ../predicates.c
+    ../delaunay.c
 HEADERS += mainwindow.h \
     delform.h \
     ../delaunay.h

@@ -25,11 +25,6 @@
 
 #include "delaunay.h"
 
-#if PREDICATE == EXACT_PREDICATE
-extern void exactinit();
-extern real incircle(real* pa, real* pb, real* pc, real* pd);
-#endif
-
 #define ON_RIGHT	1
 #define ON_SEG		0
 #define ON_LEFT		-1
@@ -44,10 +39,10 @@ struct	halfedge_s;
 struct	delaunay_s;
 
 
-#	define REAL_ZERO	0.0l
-#	define REAL_ONE		1.0l
-#	define REAL_TWO		2.0l
-#	define REAL_FOUR	4.0l
+#define REAL_ZERO	0.0l
+#define REAL_ONE	1.0l
+#define REAL_TWO	2.0l
+#define REAL_FOUR	4.0l
 
 
 typedef struct point2d_s	point2d_t;
@@ -97,9 +92,7 @@ struct delaunay_s
 */
 static lreal det3(mat3_t m)
 {
-	lreal	res;
-
-	res		= m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+	lreal	res	= m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
 			- m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
 			+ m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
 
@@ -240,30 +233,10 @@ static int del_classify_point( halfedge_t *d, point2d_t *pt )
 }
 
 /*
-* return the absolute value
-*/
-static real dabs( real a )
-{
-	if( a < REAL_ZERO )
-		return (-a);
-	return a;
-}
-
-/*
 * test if a point is inside a circle given by 3 points, 1 if inside, 0 if outside
 */
 static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t *p )
 {
-#if PREDICATE == EXACT_PREDICATE
-	real res	= incircle(&(pt0->x), &(pt1->x), &(pt2->x), &(p->x));
-	if( res > REAL_ZERO )
-		return INSIDE;
-	else if( res < REAL_ZERO )
-		return OUTSIDE;
-
-	return ON_CIRCLE;
-#endif
-#if PREDICATE == FAST_PREDICATE
 	// reduce the computational complexity by substracting the last row of the matrix
 	// ref: https://www.cs.cmu.edu/~quake/robust.html
 	lreal	p0p_x, p0p_y, p1p_x, p1p_y, p2p_x, p2p_y, p0p, p1p, p2p, res;
@@ -302,7 +275,6 @@ static int in_circle( point2d_t *pt0, point2d_t *pt1, point2d_t *pt2, point2d_t 
 		return OUTSIDE;
 
 	return ON_CIRCLE;
-#endif
 }
 
 /*
@@ -858,10 +830,6 @@ delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 	delaunay_t	del;
 	unsigned int	i, j, fbuff_size = 0;
 	unsigned int*	faces	= NULL;
-
-#if PREDICATE == EXACT_PREDICATE
-	exactinit();
-#endif
 
 	/* allocate the points */
 	del.points	= (point2d_t**)malloc(num_points * sizeof(point2d_t*));

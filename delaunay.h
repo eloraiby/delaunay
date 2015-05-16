@@ -28,11 +28,6 @@
 extern "C" {
 #endif
 
-#define FAST_PREDICATE	1	/* fast but floating point errors are more likely to occur */
-#define EXACT_PREDICATE	2	/* use exact arithmetic - slower, but shouldn't produce any floating point error */
-
-#define PREDICATE	FAST_PREDICATE
-
 typedef double real;
 
 typedef struct {
