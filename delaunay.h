@@ -44,7 +44,8 @@ typedef struct {
 	/** number of returned faces */
 	unsigned int	num_faces;
 
-	/** the triangles given as a sequence: num verts, verts indices, num verts, verts indices first face is the external face */
+	/** the faces are given as a sequence: num verts, verts indices, num verts, verts indices...
+	 * the first face is the external face */
 	unsigned int*	faces;
 } delaunay2d_t;
 

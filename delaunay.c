@@ -49,25 +49,23 @@ typedef struct point2d_s	point2d_t;
 typedef struct face_s		face_t;
 typedef struct halfedge_s	halfedge_t;
 typedef struct delaunay_s	delaunay_t;
+typedef struct working_set_s	working_set_t;
 
 typedef long double lreal;
 typedef lreal mat3_t[3][3];
 
-struct point2d_s
-{
+struct point2d_s {
 	real			x, y;			/* point coordinates */
 	halfedge_t*		he;			/* point halfedge */
 	unsigned int		idx;			/* point index in input buffer */
 };
 
-struct face_s
-{
+struct face_s {
 	halfedge_t*		he;			/* a pointing half edge */
 	unsigned int		num_verts;		/* number of vertices on this face */
 };
 
-struct halfedge_s
-{
+struct halfedge_s {
 	point2d_t*		vertex;			/* vertex */
 	halfedge_t*		pair;			/* pair */
 	halfedge_t*		next;			/* next */
@@ -75,17 +73,29 @@ struct halfedge_s
 	face_t*			face;			/* halfedge face */
 };
 
-struct delaunay_s
-{
+struct delaunay_s {
 	halfedge_t*		rightmost_he;		/* right most halfedge */
 	halfedge_t*		leftmost_he;		/* left most halfedge */
-	point2d_t**		points;			/* pointer to points */
+	point2d_t*		points;			/* pointer to points */
 	face_t*			faces;			/* faces of delaunay */
 	unsigned int		num_faces;		/* face count */
 	unsigned int		start_point;		/* start point index */
 	unsigned int		end_point;		/* end point index */
 };
 
+struct working_set_s {
+	halfedge_t*		edges;			/* all the edges (allocated in one shot) */
+	face_t*			faces;			/* all the faces (allocated in one shot) */
+
+	unsigned int		max_edge;		/* maximum edge count: 2 * 3 * n where n is point count */
+	unsigned int		max_face;		/* maximum face count: 2 * n where n is point count */
+
+	unsigned int		num_edges;		/* number of allocated edges */
+	unsigned int		num_faces;		/* number of allocated faces */
+
+	halfedge_t*		free_edge;		/* pointer to the first free edge */
+	face_t*			free_face;		/* pointer to the first free face */
+};
 
 /*
 * 3x3 matrix determinant
@@ -97,29 +107,6 @@ static lreal det3(mat3_t m)
 			+ m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
 
 	return res;
-}
-
-/*
-* allocate a point
-*/
-static point2d_t* point_alloc()
-{
-	point2d_t*	p;
-
-	p	= (point2d_t*)malloc(sizeof(point2d_t));
-	assert( p != NULL );
-	memset(p, 0, sizeof(point2d_t));
-
-	return p;
-}
-
-/*
-* free a point
-*/
-static void point_free( point2d_t* p )
-{
-	assert( p != NULL );
-	free(p);
 }
 
 /*
@@ -161,15 +148,15 @@ void del_free_halfedges( delaunay_t *del )
 	for( i = 0; i <= (del->end_point - del->start_point); i++ )
 	{
 		/* free all the halfedges around the point */
-		d	= del->points[i]->he;
+		d	= del->points[i].he;
 		if( d != NULL )
 		{
 			do {
 				sig	= d->next;
 				halfedge_free( d );
 				d	= sig;
-			} while( d != del->points[i]->he );
-			del->points[i]->he	= NULL;
+			} while( d != del->points[i].he );
+			del->points[i].he	= NULL;
 		}
 	}
 }
@@ -181,8 +168,8 @@ static int cmp_points( const void *_pt0, const void *_pt1 )
 {
 	point2d_t		*pt0, *pt1;
 
-	pt0	= (point2d_t*)(*((point2d_t**)_pt0));
-	pt1	= (point2d_t*)(*((point2d_t**)_pt1));
+	pt0	= (point2d_t*)(_pt0);
+	pt1	= (point2d_t*)(_pt1);
 
 	if( pt0->x < pt1->x )
 		return -1;
@@ -290,8 +277,8 @@ static int del_init_seg( delaunay_t *del, int start )
 	del->end_point		= start + 1;
 
 	/* setup pt0 and pt1 */
-	pt0			= del->points[start];
-	pt1			= del->points[start + 1];
+	pt0			= &(del->points[start]);
+	pt1			= &(del->points[start + 1]);
 
 	/* allocate the halfedges and setup them */
 	d0	= halfedge_alloc();
@@ -329,9 +316,9 @@ static int del_init_tri( delaunay_t *del, int start )
 	del->end_point		= start + 2;
 
 	/* setup the points */
-	pt0					= del->points[start];
-	pt1					= del->points[start + 1];
-	pt2					= del->points[start + 2];
+	pt0					= &(del->points[start]);
+	pt1					= &(del->points[start + 1]);
+	pt2					= &(del->points[start + 2]);
 
 	/* allocate the 6 halfedges */
 	d0	= halfedge_alloc();
@@ -615,19 +602,14 @@ static halfedge_t* del_valid_link( halfedge_t *b )
 	d_p	= dd->vertex;
 	assert(b->pair);
 
-	if( g != g_p && d != d_p )
-	{
+	if( g != g_p && d != d_p ) {
 		a	= in_circle(g, d, g_p, d_p);
 
-		if( a != ON_CIRCLE )
-		{
-			if( a == INSIDE )
-			{
+		if( a != ON_CIRCLE ) {
+			if( a == INSIDE ) {
 				g_p	= g;
 				gd	= b;
-			}
-			else
-			{
+			} else {
 				d_p = d;
 				dd	= b->pair;
 			}
@@ -759,20 +741,22 @@ void del_divide_and_conquer( delaunay_t *del, int start, int end )
 
 	n		= (end - start + 1);
 
-	if( n > 3 )
-	{
+	if( n > 3 ) {
 		i		= (n / 2) + (n & 1);
 		left.points		= del->points;
 		right.points	= del->points;
 		del_divide_and_conquer( &left, start, start + i - 1 );
 		del_divide_and_conquer( &right, start + i, end );
 		del_link( del, &left, &right );
-	} else
-		if( n == 3 )
+	} else {
+		if( n == 3 ) {
 			del_init_tri( del, start );
-		else
-			if( n == 2 )
+		} else {
+			if( n == 2 ) {
 				del_init_seg( del, start );
+			}
+		}
+	}
 }
 
 static void build_halfedge_face( delaunay_t *del, halfedge_t *d )
@@ -814,12 +798,12 @@ void del_build_faces( delaunay_t *del )
 
 	for( i = del->start_point; i <= del->end_point; i++ )
 	{
-		curr	= del->points[i]->he;
+		curr	= del->points[i].he;
 
 		do {
 			build_halfedge_face( del, curr );
 			curr	= curr->next;
-		} while( curr != del->points[i]->he );
+		} while( curr != del->points[i].he );
 	}
 }
 
@@ -832,20 +816,19 @@ delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 	unsigned int*	faces	= NULL;
 
 	/* allocate the points */
-	del.points	= (point2d_t**)malloc(num_points * sizeof(point2d_t*));
+	del.points	= (point2d_t*)malloc(num_points * sizeof(point2d_t));
 	assert( del.points != NULL );
-	memset(del.points, 0, num_points * sizeof(point2d_t*));
+	memset(del.points, 0, num_points * sizeof(point2d_t));
 
 	/* copy the points */
 	for( i = 0; i < num_points; i++ )
 	{
-		del.points[i]		= point_alloc();
-		del.points[i]->idx	= i;
-		del.points[i]->x	= points[i].x;
-		del.points[i]->y	= points[i].y;
+		del.points[i].idx	= i;
+		del.points[i].x	= points[i].x;
+		del.points[i].y	= points[i].y;
 	}
 
-	qsort(del.points, num_points, sizeof(point2d_t*), cmp_points);
+	qsort(del.points, num_points, sizeof(point2d_t), cmp_points);
 
 	if( num_points >= 3 ) {
 		del_divide_and_conquer( &del, 0, num_points - 1 );
@@ -877,9 +860,6 @@ delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 		del_free_halfedges( &del );
 
 		free(del.faces);
-		for( i = 0; i < num_points; i++ )
-			point_free(del.points[i]);
-
 		free(del.points);
 	}
 
