@@ -865,7 +865,7 @@ delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 
 	res		= (delaunay2d_t*)malloc(sizeof(delaunay2d_t));
 	res->num_points	= num_points;
-	res->points	= malloc(sizeof(del_point2d_t) * num_points);
+	res->points	= (del_point2d_t*)malloc(sizeof(del_point2d_t) * num_points);
 	memcpy(res->points, points, sizeof(del_point2d_t) * num_points);
 	res->num_faces	= del.num_faces;
 	res->faces	= faces;
