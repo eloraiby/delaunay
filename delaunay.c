@@ -117,7 +117,7 @@ static halfedge_t* halfedge_alloc()
 	halfedge_t*		d;
 
 	d	= (halfedge_t*)malloc(sizeof(halfedge_t));
-	assert( d != NULL );
+	assert( NULL != d );
 	memset(d, 0, sizeof(halfedge_t));
 
 	return d;
@@ -767,7 +767,9 @@ static void build_halfedge_face( delaunay_t *del, halfedge_t *d )
 	if( d->face != NULL )
 		return;
 
+	/* TODO: optimize this */
 	del->faces = (face_t*)realloc(del->faces, (del->num_faces + 1) * sizeof(face_t));
+	assert( NULL != del->faces );
 
 	face_t	*f	= &(del->faces[del->num_faces]);
 	curr	= d;
@@ -817,7 +819,7 @@ delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 
 	/* allocate the points */
 	del.points	= (point2d_t*)malloc(num_points * sizeof(point2d_t));
-	assert( del.points != NULL );
+	assert( NULL != del.points );
 	memset(del.points, 0, num_points * sizeof(point2d_t));
 
 	/* copy the points */
@@ -840,6 +842,7 @@ delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 			fbuff_size	+= del.faces[i].num_verts + 1;
 
 		faces = (unsigned int*)malloc(sizeof(unsigned int) * fbuff_size);
+		assert( NULL != faces );
 
 		j = 0;
 		for( i = 0; i < del.num_faces; i++ )
@@ -864,8 +867,10 @@ delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points) {
 	}
 
 	res		= (delaunay2d_t*)malloc(sizeof(delaunay2d_t));
+	assert( NULL != res );
 	res->num_points	= num_points;
 	res->points	= (del_point2d_t*)malloc(sizeof(del_point2d_t) * num_points);
+	assert( NULL != res->points );
 	memcpy(res->points, points, sizeof(del_point2d_t) * num_points);
 	res->num_faces	= del.num_faces;
 	res->faces	= faces;
@@ -877,4 +882,52 @@ void delaunay2d_release(delaunay2d_t *del) {
 	free(del->faces);
 	free(del->points);
 	free(del);
+}
+
+
+tri_delaunay2d_t* tri_delaunay2d_from(delaunay2d_t* del) {
+	unsigned int		v_offset	= del->faces[0] + 1;	/* ignore external face */
+	unsigned int		i;
+
+	tri_delaunay2d_t*	tdel = (tri_delaunay2d_t*)malloc(sizeof(tri_delaunay2d_t));
+	assert( NULL != tdel );
+	tdel->num_triangles	= 0;
+
+	/* count the number of triangles */
+	for( i = 0; i < del->num_faces; ++i ) {
+		unsigned int	nv	= del->faces[v_offset];
+		tdel->num_triangles	+= nv % 3;
+		v_offset		+= nv + 1;
+	}
+
+	/* copy points */
+	tdel->num_points	= del->num_points;
+	tdel->points		= (del_point2d_t*)malloc(sizeof(del_point2d_t) * del->num_points);
+	assert( NULL != tdel->points );
+	memcpy(tdel->points, del->points, sizeof(del_point2d_t) * del->num_points);
+
+	/* build the triangles */
+	v_offset	= del->faces[0] + 1;	/* ignore external face */
+
+	for( i = 0; i < del->num_faces; ++i ) {
+		unsigned int	nv	= del->faces[v_offset];
+		unsigned int	j	= 0;
+		unsigned int	first	= del->faces[v_offset + 1];
+
+		for( ; j < nv; ++j ) {
+
+		}
+
+
+		v_offset		+= nv + 1;
+	}
+
+	return tdel;
+}
+
+
+void tri_delaunay2d_release(tri_delaunay2d_t* tdel) {
+	free(tdel->tris);
+	free(tdel->points);
+	free(tdel);
 }
