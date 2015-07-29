@@ -9,7 +9,7 @@
 DelForm::DelForm(QWidget *parent) :
 	QWidget(parent),
 	m_ui(new Ui::DelForm),
-	num_points(0)
+	num_points_(0)
 {
 	m_ui->setupUi(this);
 }
@@ -32,12 +32,12 @@ void DelForm::changeEvent(QEvent *e)
 
 void DelForm::mousePressEvent(QMouseEvent *e)
 {
-	if( num_points < MAX_POINTS )
+	if( num_points_ < MAX_POINTS )
 	{
-		points[num_points].x	= e->x();
-		points[num_points].y	= e->y();
+		points_[num_points_].x	= e->x();
+		points_[num_points_].y	= e->y();
 		//		points[num_points]		= &(_points[num_points]);
-		num_points++;
+		num_points_++;
 
 		this->repaint();
 	}
@@ -47,73 +47,60 @@ void DelForm::mousePressEvent(QMouseEvent *e)
 void DelForm::paintEvent(QPaintEvent *e)
 {
 	size_t		i;
-
-	QPainter painter;
-
+	QPainter	painter;
 
 	painter.begin(this);
 	painter.setRenderHint(QPainter::Antialiasing);
 
 
-	//qsort(points, num_points, sizeof(point2d_t*), cmp_points);
-
-	if( num_points >= 3 )
+	if( num_points_ >= 3 )
 	{
-		/*del.points	= points;
-		del_divide_and_conquer( &del, 0, num_points - 1 );
+		QPointF		pf[512];
+		delaunay2d_t*	res = delaunay2d_from(points_, num_points_);
 
-		del_build_faces( &del );
-
-		del_show_cp(painter, &del );
-
-		//draw_points();
-		//del_test_faces( &del );
-		del_free_halfedges( &del );
-		*/
-		int offset = 0;
-		delaunay2d_t*	res = delaunay2d_from(points, num_points);
-
-		char str[512];
-
-
-
-		QPointF	pf[512];
-
-		for( i = 0; i < res->num_faces; i++ )
-		{
-			int num_verts = res->faces[offset];
-			offset++;
-			for( int j = 0; j < num_verts; j++ )
+		if( showPolys_ ) {
+			unsigned int	offset = res->faces[0] + 1;
+			for( i = 1; i < res->num_faces; i++ )
 			{
-				int p0 = res->faces[offset + j];
-				int p1 = res->faces[offset + (j+1) % num_verts];
-				pf[j] = QPointF(points[p0].x, points[p0].y);
-				//painter.drawLine(points[p0].x, points[p0].y, points[p1].x, points[p1].y);
+				int num_verts = res->faces[offset];
+				offset++;
+				for( int j = 0; j < num_verts; j++ )
+				{
+					int p0 = res->faces[offset + j];
+					pf[j] = QPointF(res->points[p0].x, res->points[p0].y);
+				}
+
+				int c	= (rand() % 256 + rand() % 256 + rand() % 256) / 3;
+				painter.setBrush(QBrush(QColor(c, c, c)));
+				painter.drawPolygon(pf, num_verts);
+				offset += num_verts;
 			}
 
-			int c	= (rand() % 256 + rand() % 256 + rand() % 256) / 3;
-			painter.setBrush(QBrush(QColor(c, c, c)));//QBrush(QColor(rand() % 256, rand() % 256, rand() % 256)));
-			painter.drawPolygon(pf, num_verts);
-			offset += num_verts;
+		} else {
+			tri_delaunay2d_t*	tdel	= tri_delaunay2d_from(res);
+
+			for( i = 0; i < tdel->num_triangles; i++ )
+			{
+				for( int j = 0; j < 3; j++ )
+				{
+					int p0 = tdel->tris[i * 3 + j];
+					pf[j] = QPointF(tdel->points[p0].x, tdel->points[p0].y);
+				}
+
+				int c	= (rand() % 256 + rand() % 256 + rand() % 256) / 3;
+				painter.setBrush(QBrush(QColor(c, c, c)));
+				painter.drawPolygon(pf, 3);
+			}
+
+			tri_delaunay2d_release(tdel);
+
 		}
-
-		//for(int i = 0; i < num_points; ++i) {
-		//	sprintf(str, "%d", i);
-		//	painter.setBrush(Qt::NoBrush);
-		//	painter.drawText(QPointF(points[i].x, points[i].y), str);
-		//}
-
-		//sprintf(str, "number of convex hull vertices: %d, points: %ld", faces[0], num_points);
-
 		delaunay2d_release(res);
-
-		//painter.setBrush(Qt::NoBrush);
-		//painter.drawText(rect(), Qt::AlignCenter, str);
 	}
 
-	for( i = 0; i < num_points; i++ )
+	for( i = 0; i < num_points_; i++ )
 	{
-		painter.fillRect(QRect(points[i].x - 2, points[i].y - 2, 4, 4), QBrush(QColor(0, 0, 0)));
+		painter.fillRect(QRect(points_[i].x - 2, points_[i].y - 2, 4, 4), QBrush(QColor(0, 0, 0)));
 	}
 
 	painter.end();
@@ -123,32 +110,23 @@ void
 DelForm::newGrid() {
 	printf("new Grid\n");
 
-	num_points	= 0;
+	num_points_	= 0;
 
-//	for(int y = 0; y < 16; ++y) {
-//		for( int x = 0; x < 16; ++x ) {
-//			points[num_points].x	= 100 + x * 32;
-//			points[num_points].y	= 100 + y * 32;
-
-//			num_points++;
-//		}
-//	}
-
-	num_points = 100;
-	real x1[num_points],y1[num_points];
-	real x[num_points],y[num_points];
-	for( int i = 0; i < num_points; ++i ) {
-		x1[ i ] = y1[ i ] = i * 10;
+	num_points_	= 100;
+	real x1[num_points_], y1[num_points_];
+	real x[num_points_], y[num_points_];
+	for( int i = 0; i < num_points_; ++i ) {
+		x1[ i ] = y1[ i ] = i * 20 + 5;
 	}
-	for( int i = 0; i < num_points; ++i ){
+	for( int i = 0; i < num_points_; ++i ){
 		x[ i ] = x1[ i / 10 ];
 		y[ i ] = y1[ i % 10 ];
 	}
 	int j = 0, k= 0;
-	for(int i=0; i < 2 * num_points; i++) {
-		points[i].x = x[j];
+	for(int i=0; i < 2 * num_points_; i++) {
+		points_[i].x = x[j];
 		j++;
-		points[i].y = y[k];
+		points_[i].y = y[k];
 		k++;
 
 	}
@@ -160,14 +138,14 @@ void
 DelForm::newRandom() {
 	printf("new Random\n");
 
-	num_points	= 0;
+	num_points_	= 0;
 
 	for(int y = 0; y < 16; ++y) {
 		for( int x = 0; x < 16; ++x ) {
-			points[num_points].x	= 100 + (rand() & 0x1FF) + (rand() & 0x7) / 11.0f;
-			points[num_points].y	= 100 + (rand() & 0x1FF) + (rand() & 0x7) / 11.0f;
+			points_[num_points_].x	= 100 + (rand() & 0x1FF) + (rand() & 0x7) / 11.0f;
+			points_[num_points_].y	= 100 + (rand() & 0x1FF) + (rand() & 0x7) / 11.0f;
 
-			num_points++;
+			num_points_++;
 		}
 	}
 
@@ -178,7 +156,7 @@ void
 DelForm::newCircle() {
 	printf("new Circle\n");
 
-	num_points	= 0;
+	num_points_	= 0;
 
 
 	for(int y = 0; y < 3; ++y) {
@@ -188,10 +166,10 @@ DelForm::newCircle() {
 			int radius	= 10 + (rand() & 0x3F);
 
 			for(real a = 0.0; a < 3.1415 * 2.0f; a += 0.5) {
-				points[num_points].x	= 100 + cx + cos(a) * radius;
-				points[num_points].y	= 100 + cy + sin(a) * radius;
+				points_[num_points_].x	= 100 + cx + cos(a) * radius;
+				points_[num_points_].y	= 100 + cy + sin(a) * radius;
 
-				num_points++;
+				num_points_++;
 			}
 		}
 	}
@@ -201,14 +179,14 @@ DelForm::newCircle() {
 
 void
 DelForm::newOneVert() {
-	num_points	= 0;
+	num_points_	= 0;
 
 	int	x = 0;
 	for(int y = 0; y < 16; ++y) {
-		points[num_points].x	= 232 * 2 + x * 32;
-		points[num_points].y	= 100 + y * 32;
+		points_[num_points_].x	= 232 * 2 + x * 32;
+		points_[num_points_].y	= 100 + y * 32;
 
-		num_points++;
+		num_points_++;
 	}
 
 	this->repaint();
@@ -216,15 +194,15 @@ DelForm::newOneVert() {
 
 void
 DelForm::newOneHoriz() {
-	num_points	= 0;
+	num_points_	= 0;
 
 	int	x = 0;
 
 	for(int y = 0; y < 16; ++y) {
-		points[num_points].x	= 116 + y * 32;
-		points[num_points].y	= 100 + x * 32;
+		points_[num_points_].x	= 116 + y * 32;
+		points_[num_points_].y	= 100 + x * 32;
 
-		num_points++;
+		num_points_++;
 	}
 
 	this->repaint();
@@ -240,25 +218,32 @@ DelForm::newTwoHoriz() {
 
 }
 
+
+
 void
 DelForm::newOneVertOneHoriz() {
-	num_points	= 0;
+	num_points_	= 0;
 
 	int	x = 0;
 	for(int y = 0; y < 16; ++y) {
-		points[num_points].x	= 100 + x * 32;
-		points[num_points].y	= 100 + y * 32;
+		points_[num_points_].x	= 100 + x * 32;
+		points_[num_points_].y	= 100 + y * 32;
 
-		num_points++;
+		num_points_++;
 	}
 
 	x = 8;
 	for(int y = 0; y < 16; ++y) {
-		points[num_points].x	= 132 + y * 32;
-		points[num_points].y	= 100 + x * 32;
+		points_[num_points_].x	= 132 + y * 32;
+		points_[num_points_].y	= 100 + x * 32;
 
-		num_points++;
+		num_points_++;
 	}
 
 	this->repaint();
+}
+
+void
+DelForm::showPolys(bool arg1) {
+	showPolys_	= arg1;
 }

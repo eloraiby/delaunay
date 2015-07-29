@@ -24,7 +24,7 @@ protected:
 	virtual void paintEvent(QPaintEvent *e);
 
 public slots:
-	void		newDoc() { num_points = 0; this->repaint(); }
+	void		newDoc() { num_points_ = 0; this->repaint(); }
 	void		newRandom();
 	void		newGrid();
 	void		newCircle();
@@ -34,13 +34,16 @@ public slots:
 	void		newTwoHoriz();
 	void		newOneVertOneHoriz();
 
+	void		showPolys(bool);
+
 private:
 	Ui::DelForm *m_ui;
 	struct point2d {
 		real	x, y;
 	};
-	del_point2d_t	points[MAX_POINTS];
-	size_t		num_points;
+	del_point2d_t	points_[MAX_POINTS];
+	size_t		num_points_;
+	bool		showPolys_;
 };
 
 #endif // DELFORM_H

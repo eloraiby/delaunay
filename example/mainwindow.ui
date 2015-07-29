@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -48,8 +48,16 @@
     <addaction name="action1_Vertical"/>
     <addaction name="action1_Horizontal"/>
    </widget>
+   <widget class="QMenu" name="menuFace_Type">
+    <property name="title">
+     <string>Face Type</string>
+    </property>
+    <addaction name="actionTriangle"/>
+    <addaction name="actionPolygon"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menuAuto"/>
+   <addaction name="menuFace_Type"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -100,6 +108,28 @@
     <string>1 Horizontal</string>
    </property>
   </action>
+  <action name="actionTriangle">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Triangle</string>
+   </property>
+  </action>
+  <action name="actionPolygon">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Polygon</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -118,6 +148,7 @@
     <slot>newTwoVert()</slot>
     <slot>newTwoHoriz()</slot>
     <slot>newDoc()</slot>
+    <slot>showPolys(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -224,6 +255,22 @@
    <signal>triggered()</signal>
    <receiver>widget</receiver>
    <slot>newDoc()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionPolygon</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>showPolys(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>

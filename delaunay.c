@@ -887,6 +887,7 @@ void delaunay2d_release(delaunay2d_t *del) {
 
 tri_delaunay2d_t* tri_delaunay2d_from(delaunay2d_t* del) {
 	unsigned int		v_offset	= del->faces[0] + 1;	/* ignore external face */
+	unsigned int		dst_offset	= 0;
 	unsigned int		i;
 
 	tri_delaunay2d_t*	tdel = (tri_delaunay2d_t*)malloc(sizeof(tri_delaunay2d_t));
@@ -894,9 +895,9 @@ tri_delaunay2d_t* tri_delaunay2d_from(delaunay2d_t* del) {
 	tdel->num_triangles	= 0;
 
 	/* count the number of triangles */
-	for( i = 0; i < del->num_faces; ++i ) {
+	for( i = 1; i < del->num_faces; ++i ) {
 		unsigned int	nv	= del->faces[v_offset];
-		tdel->num_triangles	+= nv % 3;
+		tdel->num_triangles	+= nv % 3 + 1;
 		v_offset		+= nv + 1;
 	}
 
@@ -907,17 +908,25 @@ tri_delaunay2d_t* tri_delaunay2d_from(delaunay2d_t* del) {
 	memcpy(tdel->points, del->points, sizeof(del_point2d_t) * del->num_points);
 
 	/* build the triangles */
+	tdel->tris		= (unsigned int*)malloc(sizeof(unsigned int) * 3 * tdel->num_triangles);
+	assert( NULL != tdel->tris );
+
 	v_offset	= del->faces[0] + 1;	/* ignore external face */
 
-	for( i = 0; i < del->num_faces; ++i ) {
+	for( i = 1; i < del->num_faces; ++i ) {
 		unsigned int	nv	= del->faces[v_offset];
 		unsigned int	j	= 0;
 		unsigned int	first	= del->faces[v_offset + 1];
 
-		for( ; j < nv; ++j ) {
+		for( ; j < nv - 2; ++j ) {
+			unsigned int	snd	= del->faces[v_offset + j + 2];
+			unsigned int	third	= del->faces[v_offset + j + 3];
 
+			tdel->tris[dst_offset]		= first;
+			tdel->tris[dst_offset + 1]	= del->faces[v_offset + j + 2];
+			tdel->tris[dst_offset + 2]	= del->faces[v_offset + j + 3];
+			dst_offset	+= 3;
 		}
-
 
 		v_offset		+= nv + 1;
 	}

@@ -21,5 +21,6 @@
   <slot>newGrid()</slot>
   <slot>newOneVertOneHoriz()</slot>
   <slot>newCircle()</slot>
+  <slot>showPolys(bool)</slot>
  </slots>
 </ui>
