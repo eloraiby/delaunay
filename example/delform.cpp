@@ -142,8 +142,8 @@ DelForm::newRandom() {
 
 	for(int y = 0; y < 16; ++y) {
 		for( int x = 0; x < 16; ++x ) {
-			points_[num_points_].x	= 100 + (rand() & 0x1FF) + (rand() & 0x7) / 11.0f;
-			points_[num_points_].y	= 100 + (rand() & 0x1FF) + (rand() & 0x7) / 11.0f;
+			points_[num_points_].x	= 100 + (rand() & 0x1FF) + (rand() & 0xFF) / 256.0f;
+			points_[num_points_].y	= 100 + (rand() & 0x1FF) + (rand() & 0xFF) / 256.0f;
 
 			num_points_++;
 		}
