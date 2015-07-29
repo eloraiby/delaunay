@@ -51,7 +51,7 @@ This will create a new structure that has the following fields:
 Release the `tri_delaunay2d_t` structure by calling `tri_delaunay2d_release`.
  
 ### Robustness
-Currently robustness is achieved by using 64 bits precision inputs and computation using 80 bits. It's possible to achieve maximum the robustness using __float128 for computation. This however is not supported with ARM.
+Currently robustness is achieved by using 64 bits precision inputs and computation using 80 bits. It's possible to achieve the maximum fast robustness using __float128 for computation (without using a slow BigFloat library). This however is not supported with ARM.
 
 Historical Note: Previous version of delaunay used the Predicates from Jonathan Richard Shewchuk. The code is however unstable when compiled with gcc with -m32 and run on x64 machines. As such the code was removed.
 
