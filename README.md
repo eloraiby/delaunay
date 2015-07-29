@@ -1,6 +1,6 @@
 # Relatively Robust Divide and Conquer 2D Delaunay Construction Algorithm
 
-Copyright 2005(c) Wael El Oraiby, All rights reserved. 
+Copyright 2005-2015(c) Wael El Oraiby, All rights reserved. 
 
 ### Introduction
 
@@ -32,8 +32,24 @@ the returned `delaunay2d_t` structures contains:
 - `num_faces`	: the output face count
 - `faces`	: the output faces indices (faces are not necessarily triangles). The first face is the external face.
 
+You have to release the structure by calling `delaunay2d_release`.
+
 See the provided example if you want more information. The example requires Qt 5 however.
 
+### Triangulated Output
+A new feature is the ability to triangulate the output of the `delaunay2d` function. The function for doing so is:
+
+    tri_delaunay2d_t* tri_delaunay2d_from(delaunay2d_t *orig);
+    
+This will create a new structure that has the following fields:
+
+- `num_points`   : input points count
+- `points`  : a copy of the input points (from orig)
+- `num_triangles`   : number of triangles
+- `tris`    : the triangles indices v0,v1,v2, v0,v1,v2 ....
+
+Release the `tri_delaunay2d_t` structure by calling `tri_delaunay2d_release`.
+ 
 ### Robustness
 Currently robustness is achieved by using 64 bits precision inputs and computation using 80 bits. It's possible to achieve maximum the robustness using __float128 for computation. This however is not supported with ARM.
 
