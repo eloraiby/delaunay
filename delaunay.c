@@ -895,10 +895,15 @@ tri_delaunay2d_t* tri_delaunay2d_from(delaunay2d_t* del) {
 	tdel->num_triangles	= 0;
 
 	/* count the number of triangles */
-	for( i = 1; i < del->num_faces; ++i ) {
-		unsigned int	nv	= del->faces[v_offset];
-		tdel->num_triangles	+= nv % 3 + 1;
-		v_offset		+= nv + 1;
+	if( 1 == del->num_faces ) { /* degenerate case: only external face exists */
+		unsigned int	nv	= del->faces[0];
+		tdel->num_triangles	+= nv - 2;
+	} else {
+		for( i = 1; i < del->num_faces; ++i ) {
+			unsigned int	nv	= del->faces[v_offset];
+			tdel->num_triangles	+= nv - 2;
+			v_offset		+= nv + 1;
+		}
 	}
 
 	/* copy points */
@@ -913,22 +918,33 @@ tri_delaunay2d_t* tri_delaunay2d_from(delaunay2d_t* del) {
 
 	v_offset	= del->faces[0] + 1;	/* ignore external face */
 
-	for( i = 1; i < del->num_faces; ++i ) {
-		unsigned int	nv	= del->faces[v_offset];
+	if( 1 == del->num_faces ) {
+		/* handle the degenerated case where only the external face exists */
+		unsigned int	nv	= del->faces[0];
 		unsigned int	j	= 0;
-		unsigned int	first	= del->faces[v_offset + 1];
-
+		v_offset	= 1;
 		for( ; j < nv - 2; ++j ) {
-			unsigned int	snd	= del->faces[v_offset + j + 2];
-			unsigned int	third	= del->faces[v_offset + j + 3];
-
-			tdel->tris[dst_offset]		= first;
-			tdel->tris[dst_offset + 1]	= del->faces[v_offset + j + 2];
-			tdel->tris[dst_offset + 2]	= del->faces[v_offset + j + 3];
+			tdel->tris[dst_offset]		= del->faces[v_offset + j];
+			tdel->tris[dst_offset + 1]	= del->faces[(v_offset + j + 1) % nv];
+			tdel->tris[dst_offset + 2]	= del->faces[v_offset + j];
 			dst_offset	+= 3;
 		}
+	} else {
+		for( i = 1; i < del->num_faces; ++i ) {
+			unsigned int	nv	= del->faces[v_offset];
+			unsigned int	j	= 0;
+			unsigned int	first	= del->faces[v_offset + 1];
 
-		v_offset		+= nv + 1;
+
+			for( ; j < nv - 2; ++j ) {
+				tdel->tris[dst_offset]		= first;
+				tdel->tris[dst_offset + 1]	= del->faces[v_offset + j + 2];
+				tdel->tris[dst_offset + 2]	= del->faces[v_offset + j + 3];
+				dst_offset	+= 3;
+			}
+
+			v_offset		+= nv + 1;
+		}
 	}
 
 	return tdel;

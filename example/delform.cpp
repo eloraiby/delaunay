@@ -59,8 +59,8 @@ void DelForm::paintEvent(QPaintEvent *e)
 		delaunay2d_t*	res = delaunay2d_from(points_, num_points_);
 
 		if( showPolys_ ) {
-			unsigned int	offset = res->faces[0] + 1;
-			for( i = 1; i < res->num_faces; i++ )
+			unsigned int	offset = 0;	// start with external face (degenerate cases have no internal face)
+			for( i = 0; i < res->num_faces; i++ )
 			{
 				int num_verts = res->faces[offset];
 				offset++;
@@ -70,10 +70,18 @@ void DelForm::paintEvent(QPaintEvent *e)
 					pf[j] = QPointF(res->points[p0].x, res->points[p0].y);
 				}
 
+				if( 2 == num_verts ) {
+					int p0 = res->faces[offset + 1];
+					pf[2] = QPointF(res->points[p0].x, res->points[p0].y);
+					num_verts	= 3;
+					offset		+= 2;
+				} else {
+					offset += num_verts;
+				}
+
 				int c	= (rand() % 256 + rand() % 256 + rand() % 256) / 3;
 				painter.setBrush(QBrush(QColor(c, c, c)));
 				painter.drawPolygon(pf, num_verts);
-				offset += num_verts;
 			}
 
 		} else {
