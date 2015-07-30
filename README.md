@@ -19,7 +19,7 @@ Thanks to:
 The algorithm builds the 2D Delaunay triangulation given a set of points of at least
 3 points using:
 
-    delaunay2d_t* delaunay2d(del_point2d_t *points, unsigned int num_points);
+    delaunay2d_t* delaunay2d_from(del_point2d_t *points, unsigned int num_points);
 
 - `points`	: point set given as a sequence of tuple x0, y0, x1, y1, ....
 - `num_points`	: number of given point
