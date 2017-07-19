@@ -9,7 +9,7 @@ namespace Ui {
 class DelForm;
 }
 
-#define MAX_POINTS		512
+#define MAX_POINTS		512*1024
 
 class DelForm : public QWidget {
 	Q_OBJECT
@@ -33,6 +33,7 @@ public slots:
 	void		newTwoVert();
 	void		newTwoHoriz();
 	void		newOneVertOneHoriz();
+    void        openFile();
 
 	void		showPolys(bool);
 

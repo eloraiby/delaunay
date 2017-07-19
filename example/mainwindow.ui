@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -34,6 +34,8 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_New"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen"/>
     <addaction name="separator"/>
     <addaction name="actionE_xit"/>
    </widget>
@@ -130,6 +132,11 @@
     <string>Polygon</string>
    </property>
   </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>&amp;Open</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -149,6 +156,7 @@
     <slot>newTwoHoriz()</slot>
     <slot>newDoc()</slot>
     <slot>showPolys(bool)</slot>
+    <slot>openFile()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -279,6 +287,22 @@
     <hint type="destinationlabel">
      <x>299</x>
      <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionOpen</sender>
+   <signal>triggered()</signal>
+   <receiver>widget</receiver>
+   <slot>openFile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>206</y>
     </hint>
    </hints>
   </connection>

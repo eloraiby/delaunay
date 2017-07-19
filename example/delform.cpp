@@ -2,9 +2,14 @@
 #include "ui_delform.h"
 
 #include <QPainter>
+#include <QFileDialog>
 
 #include <cstdio>
 #include <cmath>
+#include <cfloat>
+
+#include <vector>
+#include <unordered_set>
 
 DelForm::DelForm(QWidget *parent) :
 	QWidget(parent),
@@ -55,7 +60,7 @@ void DelForm::paintEvent(QPaintEvent *e)
 
 	if( num_points_ >= 3 )
 	{
-		QPointF		pf[512];
+        QPointF*		pf = new QPointF[MAX_POINTS];
 		delaunay2d_t*	res = delaunay2d_from(points_, num_points_);
 
 		if( showPolys_ ) {
@@ -103,6 +108,8 @@ void DelForm::paintEvent(QPaintEvent *e)
 			tri_delaunay2d_release(tdel);
 
 		}
+
+        delete[] pf;
 		delaunay2d_release(res);
 	}
 
@@ -226,7 +233,96 @@ DelForm::newTwoHoriz() {
 
 }
 
+static
+std::vector<del_point2d_t>
+remap(const std::vector<del_point2d_t>& in, real w, real h) {
+    real min_x = FLT_MAX, min_y = FLT_MAX;
+    real max_x = -FLT_MAX, max_y = -FLT_MAX;
 
+    for( auto pt : in ) {
+        min_x   = std::min(pt.x, min_x);
+        min_y   = std::min(pt.y, min_y);
+        max_x   = std::max(pt.x, max_x);
+        max_y   = std::max(pt.y, max_y);
+    }
+
+    real range_x = max_x - min_x;
+    real range_y = max_y - min_y;
+
+    std::vector<del_point2d_t>  out;
+
+    for( auto pt : in ) {
+        del_point2d_t   o;
+        o.x = ((pt.x - min_x) / range_x) * w;
+        o.y = ((pt.y - min_y) / range_y) * h;
+
+        out.push_back(o);
+    }
+
+    return out;
+}
+
+namespace std {
+
+template <>
+struct hash<del_point2d_t>
+{
+    std::size_t operator()(const del_point2d_t& k) const
+    {
+        using std::size_t;
+        using std::hash;
+        return ((hash<double>()(k.x)
+                 ^ (hash<double>()(k.y) << 1)) >> 1);
+    }
+};
+
+}
+
+bool operator == (const del_point2d_t& a, const del_point2d_t& b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+void
+DelForm::openFile() {
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Open point set"), "/home/", tr("Text files (*.txt)"));
+
+    FILE* file = fopen(fileName.toStdString().c_str(), "rt");
+
+    std::vector<del_point2d_t>  points;
+    while(!feof(file)) {
+        del_point2d_t   pt;
+        fscanf(file, "%lf,%lf", &pt.x, &pt.y);
+        points.push_back(pt);
+    }
+    fclose(file);
+
+    std::unordered_set<del_point2d_t>   point_set;
+
+    for( auto pt : points ) {
+        if( point_set.find(pt) != point_set.end() ) {
+            fprintf(stderr, "WARNING: points with same coordinate are found\n");
+        }
+        point_set.insert(pt);
+    }
+
+    points.clear();
+
+    for( auto pt : point_set ) {
+        points.push_back(pt);
+    }
+
+    // remap the point set
+    points = remap(points, this->width(), this->height());
+
+
+    num_points_ = points.size();
+    for( size_t i = 0; i < points.size(); ++i ) {
+        points_[i] = points[i];
+    }
+
+    this->repaint();
+}
 
 void
 DelForm::newOneVertOneHoriz() {

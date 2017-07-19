@@ -22,5 +22,6 @@
   <slot>newOneVertOneHoriz()</slot>
   <slot>newCircle()</slot>
   <slot>showPolys(bool)</slot>
+  <slot>openFile()</slot>
  </slots>
 </ui>
