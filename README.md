@@ -14,6 +14,17 @@ Thanks to:
 * Dominique Schmitt and Jean-Claude Spehner for their valuable help and support.
 * Jonathan Richard Shewchuk for the robust computational geometry predicates.
 
+
+### Configuration and compilation using CMake and Make
+
+```
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+```
+
+
 ### Usage
 
 The algorithm builds the 2D Delaunay triangulation given a set of points of at least
