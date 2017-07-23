@@ -1,6 +1,6 @@
 # Relatively Robust Divide and Conquer 2D Delaunay Construction Algorithm
 
-Copyright 2005-2015(c) Wael El Oraiby, All rights reserved. 
+Copyright 2005-2017 (c) Wael El Oraiby, All rights reserved.
 
 ### Introduction
 
