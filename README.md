@@ -8,9 +8,11 @@ This is a library that builds a 2D Delaunay Construction using a divide and conq
 
 Given a set of inputs points, the program will output Delaunay faces (not necessarily triangles, as long as the points are circumscribed to a circle).
 
-Thanks to:
+### Contributors
+* Raja Lehtihet (bug fixes and suggestions)
+* Radovan Bast (CMake build system)
 
-* Raja Lehtihet for bug fixes and suggestions.
+Thanks to:
 * Dominique Schmitt and Jean-Claude Spehner for their valuable help and support.
 * Jonathan Richard Shewchuk for the robust computational geometry predicates.
 
