@@ -14,4 +14,6 @@ HEADERS += mainwindow.h \
 FORMS += mainwindow.ui \
     delform.ui
 
+CONFIG += C++11
+
 QMAKE_CXXFLAGS += -DQT_INCLUDE_COMPAT
