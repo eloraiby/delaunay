@@ -23,4 +23,4 @@ In Processing, click on the _Sketch_ drop down menu, and click "Add File". Choos
 
 
 ## Source Code Status
-The Java Delaunay code is more-or-less a straight port from the C implementation and can be refactored after further studying of the algorithm. This port assumes that all passed point data is untamed and manages the input points by removing duplicates to avoid errors.
+The Java Delaunay code is more-or-less a straight port from the C implementation. There's lots of room for refactoring to optimize this source port. This port assumes that all passed point data is untamed and manages the input data by removing duplicates to avoid errors in Delaunay::DelaunaySetup().
